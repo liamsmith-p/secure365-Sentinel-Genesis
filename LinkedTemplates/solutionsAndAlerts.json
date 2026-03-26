@@ -41,15 +41,12 @@
         },
         "location": {
             "type": "string"
-        },
-        "roleGuid": {
-            "type": "string",
-            "defaultValue": "[newGuid()]"
         }
     },
     "functions": [],
     "variables": {
         "identityName": "[concat('userIdentity',uniqueString(resourceGroup().id))]",
+        "roleGuid": "[guid(resourceGroup().id, 'sentinel-deploy-role')]",
         "solutions": "[replace(concat(parameters('enableSolutions1P'),if(and(not(empty(parameters('enableSolutions1P'))),not(empty(parameters('enableSolutionsEssentials')))),concat(',',parameters('enableSolutionsEssentials')),parameters('enableSolutionsEssentials')),if(or(not(empty(parameters('enableSolutionsEssentials'))),not(empty(parameters('enableSolutions1P')))),concat(',',parameters('enableSolutionsTraining')),parameters('enableSolutionsTraining'))),'\"','\\\"')]",
         "severities": "[if(empty(parameters('severityLevels')),'None',parameters('severityLevels'))]"
     },
@@ -61,7 +58,9 @@
             "location": "[resourceGroup().location]"
         },
         {
-            "dependsOn": ["[concat('Microsoft.ManagedIdentity/userAssignedIdentities/', variables('identityName'))]"],
+            "dependsOn": [
+                "[concat('Microsoft.ManagedIdentity/userAssignedIdentities/', variables('identityName'))]"
+            ],
             "type": "Microsoft.Resources/deploymentScripts",
             "apiVersion": "2020-10-01",
             "name": "sleep",
@@ -79,12 +78,13 @@
             }
         },
         {
-            "apiVersion": "2017-09-01",
+            "apiVersion": "2022-04-01",
             "type": "Microsoft.Authorization/roleAssignments",
-            "name": "[parameters('roleGuid')]",
+            "name": "[variables('roleGuid')]",
             "properties": {
                 "roleDefinitionId": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]",
                 "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('identityName')), '2018-11-30', 'Full').properties.principalId]",
+                "principalType": "ServicePrincipal",
                 "scope": "[resourceGroup().id]"
             },
             "dependsOn": [
@@ -92,7 +92,9 @@
             ]
         },
         {
-            "dependsOn": ["[concat('Microsoft.Authorization/roleAssignments/', parameters('roleGuid'))]"],
+            "dependsOn": [
+                "[concat('Microsoft.Authorization/roleAssignments/', variables('roleGuid'))]"
+            ],
             "type": "Microsoft.Resources/deploymentScripts",
             "apiVersion": "2020-10-01",
             "name": "deployRules",
@@ -105,10 +107,10 @@
                 }
             },
             "properties": {
-                "forceUpdateTag": "1",
+                "forceUpdateTag": "[utcNow()]",
                 "azPowerShellVersion": "3.0",
                 "arguments": "[concat('-Workspace ', parameters('workspaceName'), ' -ResourceGroup ', resourceGroup().name, ' -Solutions ', variables('solutions'), ' -SeveritiesToInclude ', string(variables('severities')), ' -Region ', parameters('location'))]",
-                "primaryScriptUri": "https://raw.githubusercontent.com/SoftwerxDevOps/secure365-Sentinel-Genesis/main/Scripts/Create-NewSolutionAndRulesFromList.ps1",
+                "primaryScriptUri": "https://raw.githubusercontent.com/liamsmith-p/secure365-Sentinel-Genesis/main/Scripts/Create-NewSolutionAndRulesFromList.ps1",
                 "supportingScriptUris": [],
                 "timeout": "PT30M",
                 "cleanupPreference": "OnExpiration",

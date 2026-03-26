@@ -41,6 +41,10 @@
         },
         "location": {
             "type": "string"
+        },
+        "forceUpdateTag": {
+            "type": "string",
+            "defaultValue": "[utcNow()]"
         }
     },
     "functions": [],
@@ -107,7 +111,7 @@
                 }
             },
             "properties": {
-                "forceUpdateTag": "[utcNow()]",
+                "forceUpdateTag": "[parameters('forceUpdateTag')]",
                 "azPowerShellVersion": "3.0",
                 "arguments": "[concat('-Workspace ', parameters('workspaceName'), ' -ResourceGroup ', resourceGroup().name, ' -Solutions ', variables('solutions'), ' -SeveritiesToInclude ', string(variables('severities')), ' -Region ', parameters('location'))]",
                 "primaryScriptUri": "https://raw.githubusercontent.com/liamsmith-p/secure365-Sentinel-Genesis/main/Scripts/Create-NewSolutionAndRulesFromList.ps1",

@@ -172,7 +172,7 @@
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
-                    "dataConnectorsKind": {
+                    "enableDataConnectors": {
                         "value": "[parameters('enableDataConnectors')]"
                     },
                     "aadStreams": {
@@ -180,12 +180,6 @@
                     },
                     "workspaceName": {
                         "value": "[parameters('workspaceName')]"
-                    },
-                    "tenantId": {
-                        "value": "[subscription().tenantId]"
-                    },
-                    "subscriptionId": {
-                        "value": "[subscription().subscriptionId]"
                     },
                     "location": {
                         "value": "[parameters('location')]"

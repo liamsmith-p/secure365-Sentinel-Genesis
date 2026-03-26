@@ -317,11 +317,6 @@
                                     "value": "MicrosoftDefenderForCloudApps"
                                 },
                                 {
-                                    "label": "Office 365",
-                                    "description": "Relevant license and Global Admin or Security Admin permission required.",
-                                    "value": "Office365"
-                                },
-                                {
                                     "label": "Threat Intelligence",
                                     "description": "The Threat Intelligence data connector imports threat indicators into Microsoft Sentinel for use in analytic rules and hunting queries.",
                                     "value": "ThreatIntelligence"

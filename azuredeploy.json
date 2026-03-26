@@ -1,12 +1,10 @@
 {
-    "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "rgName": {
-            "type": "string"
-        },
         "location": {
-            "type": "string"
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]"
         },
         "workspaceName": {
             "type": "string",
@@ -31,10 +29,9 @@
             "defaultValue": "PerGB2018"
         },
         "enableDataConnectors": {
-
             "type": "array",
             "metadata": {
-                "description": "The kind of data connectors that can be deployed via ARM templates are the following: [\"AzureActivityLog\",\"SecurityInsightsSecurityEventCollectionConfiguration\",\"WindowsFirewall\",\"DnsAnalytics\"], Reference: https://docs.microsoft.com/azure/templates/microsoft.operationalinsights/2020-03-01-preview/workspaces/datasources#microsoftoperationalinsightsworkspacesdatasources-object"
+                "description": "The kind of data connectors that can be deployed via ARM templates."
             },
             "defaultValue": []
         },
@@ -83,7 +80,16 @@
             "defaultValue": []
         },
         "enableDiagnostics": {
-            "type": "bool"
+            "type": "bool",
+            "defaultValue": false
+        },
+        "enableScheduledAlerts": {
+            "type": "bool",
+            "defaultValue": false
+        },
+        "severityLevels": {
+            "type": "array",
+            "defaultValue": []
         },
         "_artifactsLocation": {
             "type": "string",
@@ -93,24 +99,12 @@
             "defaultValue": "https://raw.githubusercontent.com/SoftwerxDevOps/secure365-Sentinel-Genesis/main/"
         }
     },
-    "variables": {
-    },
+    "variables": {},
     "resources": [
-        {
-            "type": "Microsoft.Resources/resourceGroups",
-            "apiVersion": "2020-06-01",
-            "name": "[parameters('rgName')]",
-            "location": "[parameters('location')]",
-            "properties": {}
-        },
         {
             "name": "workspaceCreation",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
-            "dependsOn": [
-                "[resourceId('Microsoft.Resources/resourceGroups',parameters('rgName'))]"
-            ],
-            "resourceGroup": "[parameters('rgName')]",
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
@@ -140,7 +134,6 @@
             "dependsOn": [
                 "workspaceCreation"
             ],
-            "resourceGroup": "[parameters('rgName')]",
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
@@ -168,7 +161,6 @@
             "name": "enableDataConnectors",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
-            "resourceGroup": "[parameters('rgName')]",
             "dependsOn": [
                 "workspaceCreation",
                 "enableSolutionsAndAlerts"
@@ -206,10 +198,8 @@
             "name": "enableSolutionsAndAlerts",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
-            "resourceGroup": "[parameters('rgName')]",
             "dependsOn": [
-                "workspaceCreation",
-                "[resourceId('Microsoft.Resources/resourceGroups',parameters('rgName'))]"
+                "workspaceCreation"
             ],
             "properties": {
                 "mode": "Incremental",

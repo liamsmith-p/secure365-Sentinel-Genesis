@@ -33,7 +33,6 @@
     "variables": {
         "tenantId": "[subscription().tenantId]",
         "subscriptionId": "[subscription().subscriptionId]",
-        "o365Name": "[concat('o365', uniqueString(resourceGroup().id))]",
         "ascName": "[concat('asc', uniqueString(resourceGroup().id))]",
         "mcasName": "[concat('mcas', uniqueString(resourceGroup().id))]",
         "aadipName": "[concat('aadip', uniqueString(resourceGroup().id))]",
@@ -51,28 +50,6 @@
                 "tenantId": "[variables('tenantId')]",
                 "dataTypes": {
                     "alerts": {
-                        "state": "enabled"
-                    }
-                }
-            }
-        },
-        {
-            "condition": "[contains(parameters('enableDataConnectors'), 'Office365')]",
-            "type": "Microsoft.OperationalInsights/workspaces/providers/dataConnectors",
-            "apiVersion": "2020-01-01",
-            "location": "[parameters('location')]",
-            "name": "[concat(parameters('workspaceName'),'/Microsoft.SecurityInsights/',variables('o365Name'))]",
-            "kind": "Office365",
-            "properties": {
-                "tenantId": "[variables('tenantId')]",
-                "dataTypes": {
-                    "exchange": {
-                        "state": "enabled"
-                    },
-                    "sharePoint": {
-                        "state": "enabled"
-                    },
-                    "teams": {
                         "state": "enabled"
                     }
                 }
@@ -97,7 +74,7 @@
         {
             "condition": "[contains(parameters('enableDataConnectors'), 'MicrosoftDefenderForCloudApps')]",
             "type": "Microsoft.OperationalInsights/workspaces/providers/dataConnectors",
-            "apiVersion": "2020-01-01",
+            "apiVersion": "2022-12-01-preview",
             "location": "[parameters('location')]",
             "name": "[concat(parameters('workspaceName'),'/Microsoft.SecurityInsights/',variables('mcasName'))]",
             "kind": "MicrosoftCloudAppSecurity",
@@ -105,6 +82,9 @@
                 "tenantId": "[variables('tenantId')]",
                 "dataTypes": {
                     "alerts": {
+                        "state": "enabled"
+                    },
+                    "discoveryLogs": {
                         "state": "enabled"
                     }
                 }

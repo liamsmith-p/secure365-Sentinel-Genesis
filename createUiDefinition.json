@@ -340,6 +340,52 @@
                             "required": false
                         },
                         "visible": true
+                    },
+                    {
+                        "name": "infoBoxDiagnostics",
+                        "type": "Microsoft.Common.InfoBox",
+                        "visible": true,
+                        "options": {
+                            "icon": "Info",
+                            "text": "Azure Key Vault, NSG, Storage, and SQL Database do not have Sentinel API connectors — their data is collected via Azure Diagnostics. Select resource types below to automatically configure diagnostic settings on all matching resources currently in your subscription, forwarding logs to this Sentinel workspace. Resources created after deployment will need diagnostics configured manually or via Azure Policy."
+                        }
+                    },
+                    {
+                        "name": "enableDiagnosticPolicies",
+                        "type": "Microsoft.Common.DropDown",
+                        "label": "Configure Azure Diagnostics for existing resources",
+                        "placeholder": "",
+                        "multiselect": true,
+                        "filter": true,
+                        "filterPlaceholder": "Filter items ...",
+                        "multiLine": true,
+                        "toolTip": "Diagnostic settings will be configured on all matching resources found in your subscription at deployment time. Subscription Owner or Contributor permission required.",
+                        "constraints": {
+                            "allowedValues": [
+                                {
+                                    "label": "Azure Key Vault",
+                                    "description": "Enables AuditEvent diagnostic logs on all Key Vaults in the subscription, forwarding to Sentinel.",
+                                    "value": "AzureKeyVault"
+                                },
+                                {
+                                    "label": "Azure Network Security Groups",
+                                    "description": "Enables NetworkSecurityGroupEvent and NetworkSecurityGroupRuleCounter logs on all NSGs in the subscription.",
+                                    "value": "AzureNetworkSecurityGroup"
+                                },
+                                {
+                                    "label": "Azure Storage Accounts",
+                                    "description": "Enables StorageRead, StorageWrite and StorageDelete logs on the blob service of all Storage Accounts in the subscription.",
+                                    "value": "AzureStorageAccount"
+                                },
+                                {
+                                    "label": "Azure SQL Databases",
+                                    "description": "Enables SQLSecurityAuditEvents, SQLInsights, Errors, Timeouts, Blocks and Deadlocks logs on all SQL Databases in the subscription.",
+                                    "value": "AzureSqlDatabase"
+                                }
+                            ],
+                            "required": false
+                        },
+                        "visible": true
                     }
                 ]
             },
@@ -412,6 +458,7 @@
             "enableSolutions1P": "[steps('solutions').enableSolutions1P]",
             "enableSolutionsEssentials": "[steps('solutions').enableSolutionsEssentials]",
             "enableDataConnectors": "[steps('dataConnectors').enableDataConnectors]",
+            "enableDiagnosticPolicies": "[steps('dataConnectors').enableDiagnosticPolicies]",
             "aadStreams": [],
             "location": "[location()]",
             "enableScheduledAlerts": "[steps('analyticsRules').enableScheduledAlerts]",

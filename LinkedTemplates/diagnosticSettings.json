@@ -1,0 +1,126 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "workspaceName": {
+            "type": "string"
+        },
+        "location": {
+            "type": "string"
+        },
+        "enableDiagnosticPolicies": {
+            "type": "array",
+            "defaultValue": []
+        },
+        "forceUpdateTag": {
+            "type": "string",
+            "defaultValue": "[utcNow()]"
+        }
+    },
+    "variables": {
+        "identityName": "[concat('diagIdentity', uniqueString(resourceGroup().id))]",
+        "subscriptionId": "[subscription().subscriptionId]",
+        "contributorRoleId": "b24988ac-6180-42a0-ab88-20f7382dd24c",
+        "roleAssignmentGuid": "[guid(resourceGroup().id, 'diag-contributor-assign')]",
+        "resourceTypes": "[replace(replace(string(parameters('enableDiagnosticPolicies')),'[',''),']','')]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+            "apiVersion": "2018-11-30",
+            "name": "[variables('identityName')]",
+            "location": "[parameters('location')]"
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2021-04-01",
+            "name": "diagIdentityRoleAssignment",
+            "location": "[parameters('location')]",
+            "subscriptionId": "[variables('subscriptionId')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('identityName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "expressionEvaluationOptions": {
+                    "scope": "inner"
+                },
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {
+                        "principalId": { "type": "string" },
+                        "contributorRoleId": { "type": "string" },
+                        "roleAssignmentGuid": { "type": "string" }
+                    },
+                    "resources": [
+                        {
+                            "type": "Microsoft.Authorization/roleAssignments",
+                            "apiVersion": "2022-04-01",
+                            "name": "[parameters('roleAssignmentGuid')]",
+                            "properties": {
+                                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', parameters('contributorRoleId'))]",
+                                "principalId": "[parameters('principalId')]",
+                                "principalType": "ServicePrincipal"
+                            }
+                        }
+                    ]
+                },
+                "parameters": {
+                    "principalId": {
+                        "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('identityName')), '2018-11-30').principalId]"
+                    },
+                    "contributorRoleId": {
+                        "value": "[variables('contributorRoleId')]"
+                    },
+                    "roleAssignmentGuid": {
+                        "value": "[variables('roleAssignmentGuid')]"
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Resources/deploymentScripts",
+            "apiVersion": "2020-10-01",
+            "name": "diagSleep",
+            "location": "[parameters('location')]",
+            "kind": "AzurePowerShell",
+            "dependsOn": [
+                "diagIdentityRoleAssignment"
+            ],
+            "properties": {
+                "forceUpdateTag": "1",
+                "azPowerShellVersion": "3.0",
+                "scriptContent": "Start-Sleep -Seconds 120",
+                "timeout": "PT10M",
+                "cleanupPreference": "Always",
+                "retentionInterval": "P1D"
+            }
+        },
+        {
+            "type": "Microsoft.Resources/deploymentScripts",
+            "apiVersion": "2020-10-01",
+            "name": "configureDiagnostics",
+            "location": "[parameters('location')]",
+            "kind": "AzurePowerShell",
+            "identity": {
+                "type": "userAssigned",
+                "userAssignedIdentities": {
+                    "[resourceID('Microsoft.ManagedIdentity/userAssignedIdentities/', variables('identityName'))]": {}
+                }
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Resources/deploymentScripts', 'diagSleep')]"
+            ],
+            "properties": {
+                "forceUpdateTag": "[parameters('forceUpdateTag')]",
+                "azPowerShellVersion": "3.0",
+                "arguments": "[concat('-WorkspaceName ', parameters('workspaceName'), ' -ResourceGroup ', resourceGroup().name, ' -SubscriptionId ', variables('subscriptionId'), ' -ResourceTypes ', variables('resourceTypes'))]",
+                "primaryScriptUri": "https://raw.githubusercontent.com/liamsmith-p/secure365-Sentinel-Genesis/main/Scripts/Configure-DiagnosticSettings.ps1",
+                "timeout": "PT30M",
+                "cleanupPreference": "OnExpiration",
+                "retentionInterval": "P1D"
+            }
+        }
+    ]
+}

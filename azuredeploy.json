@@ -91,6 +91,13 @@
             "type": "array",
             "defaultValue": []
         },
+        "enableDiagnosticPolicies": {
+            "type": "array",
+            "metadata": {
+                "description": "Resource types to configure Azure Diagnostics settings on (Key Vault, NSG, Storage, SQL)."
+            },
+            "defaultValue": []
+        },
         "_artifactsLocation": {
             "type": "string",
             "metadata": {
@@ -222,6 +229,33 @@
                     },
                     "location": {
                         "value": "[parameters('location')]"
+                    }
+                }
+            }
+        }
+        {
+            "condition": "[not(empty(parameters('enableDiagnosticPolicies')))]",
+            "name": "configureDiagnosticSettings",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "dependsOn": [
+                "workspaceCreation"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[uri(parameters('_artifactsLocation'), 'LinkedTemplates/diagnosticSettings.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "workspaceName": {
+                        "value": "[parameters('workspaceName')]"
+                    },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "enableDiagnosticPolicies": {
+                        "value": "[parameters('enableDiagnosticPolicies')]"
                     }
                 }
             }

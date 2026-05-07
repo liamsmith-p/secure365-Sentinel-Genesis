@@ -232,7 +232,7 @@
                     }
                 }
             }
-        }
+        },
         {
             "condition": "[not(empty(parameters('enableDiagnosticPolicies')))]",
             "name": "configureDiagnosticSettings",

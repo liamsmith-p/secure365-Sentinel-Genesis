@@ -36,7 +36,9 @@
         "ascName": "[concat('asc', uniqueString(resourceGroup().id))]",
         "mcasName": "[concat('mcas', uniqueString(resourceGroup().id))]",
         "aadipName": "[concat('aadip', uniqueString(resourceGroup().id))]",
-        "tiName": "[concat('ti', uniqueString(resourceGroup().id))]"
+        "tiName": "[concat('ti', uniqueString(resourceGroup().id))]",
+        "azureActivityName": "[concat('azureactivity', uniqueString(resourceGroup().id))]",
+        "office365Name": "[concat('office365', uniqueString(resourceGroup().id))]"
     },
     "resources": [
         {
@@ -101,6 +103,39 @@
                 "tenantId": "[variables('tenantId')]",
                 "dataTypes": {
                     "indicators": {
+                        "state": "enabled"
+                    }
+                }
+            }
+        },
+        {
+            "condition": "[contains(parameters('enableDataConnectors'), 'AzureActivity')]",
+            "type": "Microsoft.OperationalInsights/workspaces/providers/dataConnectors",
+            "apiVersion": "2022-11-01-preview",
+            "location": "[parameters('location')]",
+            "name": "[concat(parameters('workspaceName'),'/Microsoft.SecurityInsights/',variables('azureActivityName'))]",
+            "kind": "AzureActivity",
+            "properties": {
+                "linkedResourceId": "[concat('/subscriptions/', variables('subscriptionId'), '/providers/microsoft.insights/eventtypes/management')]"
+            }
+        },
+        {
+            "condition": "[contains(parameters('enableDataConnectors'), 'Office365')]",
+            "type": "Microsoft.OperationalInsights/workspaces/providers/dataConnectors",
+            "apiVersion": "2020-01-01",
+            "location": "[parameters('location')]",
+            "name": "[concat(parameters('workspaceName'),'/Microsoft.SecurityInsights/',variables('office365Name'))]",
+            "kind": "Office365",
+            "properties": {
+                "tenantId": "[variables('tenantId')]",
+                "dataTypes": {
+                    "exchange": {
+                        "state": "enabled"
+                    },
+                    "sharePoint": {
+                        "state": "enabled"
+                    },
+                    "teams": {
                         "state": "enabled"
                     }
                 }

@@ -284,7 +284,7 @@
                         "visible": true,
                         "options": {
                             "icon": "Info",
-                            "text": "Please select which Data Connectors you would like to configure in your Microsoft Sentinel environment. Note: Microsoft Entra ID logs, Azure Activity, and Microsoft 365 Defender XDR must be configured separately (Entra ID via diagnostic settings, Azure Activity via subscription diagnostic settings, and M365 Defender is automatic on unified workspaces).",
+                            "text": "Select which Data Connectors to configure. Azure Activity and Microsoft 365 (Exchange/SharePoint/Teams) can be enabled here. Microsoft Entra ID sign-in and audit logs require tenant-level diagnostic settings and must be configured manually after deployment via the Sentinel portal (Data connectors > Microsoft Entra ID). Microsoft Defender XDR is automatic on unified workspaces. Do NOT select Microsoft Defender for Cloud Apps if your tenant uses the Microsoft Defender XDR portal — it will cause a conflict error.",
                             "uri": "https://learn.microsoft.com/azure/sentinel/data-connectors-reference"
                         }
                     },
@@ -302,23 +302,33 @@
                         "constraints": {
                             "allowedValues": [
                                 {
-                                    "label": "Microsoft Entra ID Identity Protection",
-                                    "description": "Relevant license and Global Admin or Security Admin permission required.",
+                                    "label": "Azure Activity",
+                                    "description": "Ingest Azure subscription Activity logs (administrative, security, service health) into Sentinel. Subscription Contributor or Owner permission required.",
+                                    "value": "AzureActivity"
+                                },
+                                {
+                                    "label": "Microsoft 365 (Exchange, SharePoint, Teams)",
+                                    "description": "Ingest Office 365 activity logs from Exchange Online, SharePoint Online, and Microsoft Teams. Global Admin or Security Admin permission required.",
+                                    "value": "Office365"
+                                },
+                                {
+                                    "label": "Microsoft Entra ID Identity Protection (CAUTION)",
+                                    "description": "WARNING: Do not select this if your tenant uses Microsoft Defender XDR — Identity Protection is managed by the XDR portal and this will fail with a conflict error. Configure via the Defender portal instead.",
                                     "value": "AzureActiveDirectoryIDP"
                                 },
                                 {
                                     "label": "Microsoft Defender for Cloud",
-                                    "description": "Security Reader permission required.",
+                                    "description": "Ingest security alerts from Microsoft Defender for Cloud. Security Reader permission required.",
                                     "value": "MicrosoftDefenderForCloud"
                                 },
                                 {
-                                    "label": "Microsoft Defender for Cloud Apps",
-                                    "description": "By connecting with Microsoft Defender for Cloud Apps you will gain visibility into your cloud apps, get sophisticated analytics to identify and combat cyberthreats, and control how your data travels.",
+                                    "label": "Microsoft Defender for Cloud Apps (CAUTION)",
+                                    "description": "WARNING: Do not select this if your tenant manages Defender for Cloud Apps through the Microsoft Defender XDR portal — it will fail with a conflict error. Configure via the Defender portal instead.",
                                     "value": "MicrosoftDefenderForCloudApps"
                                 },
                                 {
                                     "label": "Threat Intelligence",
-                                    "description": "The Threat Intelligence data connector imports threat indicators into Microsoft Sentinel for use in analytic rules and hunting queries.",
+                                    "description": "Import threat indicators into Sentinel for use in analytic rules and hunting queries.",
                                     "value": "ThreatIntelligence"
                                 }
                             ],

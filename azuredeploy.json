@@ -215,10 +215,10 @@
                         "value": "[parameters('workspaceName')]"
                     },
                     "severityLevels": {
-                        "value": ""
+                        "value": "[replace(replace(string(parameters('severityLevels')),'[',''),']','')]"
                     },
                     "enableAlerts": {
-                        "value": false
+                        "value": "[parameters('enableScheduledAlerts')]"
                     },
                     "location": {
                         "value": "[parameters('location')]"

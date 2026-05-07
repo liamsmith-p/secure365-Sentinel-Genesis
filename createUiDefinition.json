@@ -86,7 +86,7 @@
                         "name": "enableUeba",
                         "type": "Microsoft.Common.CheckBox",
                         "label": "Enable User Entity Behavior Analytics (UEBA)? Global Admin or Security Admin permission required.",
-                        "toolTip": "This will only enable synchronization with identity providers. Data sources need to be enabled separately. [Learn more](https://learn.microsoft.com/azure/sentinel/identify-threats-with-entity-behavior-analytics)",
+                        "toolTip": "Enables UEBA entity provider sync. Only select 'Active Directory' if Microsoft Defender for Identity (MDI) is already deployed and onboarded — selecting it without MDI will fail with a precondition error. 'Microsoft Entra ID' has no such prerequisite.",
                         "constraints": {
                             "required": false,
                             "validationMessage": "Please choose"
@@ -106,7 +106,7 @@
                                     "value": "AzureActiveDirectory"
                                 },
                                 {
-                                    "label": "Active Directory (requires Microsoft Defender for Identity)",
+                                    "label": "Active Directory (CAUTION — requires MDI)",
                                     "value": "ActiveDirectory"
                                 }
                             ],

@@ -38,7 +38,8 @@
         "aadipName": "[concat('aadip', uniqueString(resourceGroup().id))]",
         "tiName": "[concat('ti', uniqueString(resourceGroup().id))]",
         "azureActivityName": "[concat('azureactivity', uniqueString(resourceGroup().id))]",
-        "office365Name": "[concat('office365', uniqueString(resourceGroup().id))]"
+        "office365Name": "[concat('office365', uniqueString(resourceGroup().id))]",
+        "xdrName": "[concat('xdr', uniqueString(resourceGroup().id))]"
     },
     "resources": [
         {
@@ -152,6 +153,25 @@
                 "parameters": {
                     "workspaceId": {
                         "value": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspaceName'))]"
+                    }
+                }
+            }
+        },
+        {
+            "condition": "[contains(parameters('enableDataConnectors'), 'MicrosoftDefenderXDR')]",
+            "type": "Microsoft.OperationalInsights/workspaces/providers/dataConnectors",
+            "apiVersion": "2022-12-01-preview",
+            "location": "[parameters('location')]",
+            "name": "[concat(parameters('workspaceName'),'/Microsoft.SecurityInsights/',variables('xdrName'))]",
+            "kind": "MicrosoftThreatProtection",
+            "properties": {
+                "tenantId": "[variables('tenantId')]",
+                "dataTypes": {
+                    "incidents": {
+                        "state": "enabled"
+                    },
+                    "alerts": {
+                        "state": "enabled"
                     }
                 }
             }

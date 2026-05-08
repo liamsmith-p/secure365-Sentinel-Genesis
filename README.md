@@ -21,29 +21,6 @@ Before clicking Deploy to Azure, ensure the following are in place.
 
 > Contributor alone is not sufficient — the deployment creates role assignments which require Owner or User Access Administrator.
 
-### Required resource providers
-
-The deployment uses Azure Deployment Scripts, which run inside Azure Container Instances. Both resource providers must be registered on your subscription before deploying — registration is a one-time step per subscription.
-
-| Resource provider | How to register |
-|---|---|
-| `Microsoft.ContainerInstance` | Azure Portal → Subscriptions → [your subscription] → Resource providers → search ContainerInstance → **Register** |
-| `Microsoft.Storage` | Same path, search Storage |
-
-Registration typically takes 1–3 minutes. If either provider is not registered, the deployment will time out at exactly 1200 seconds while waiting for registration to complete.
-
-You can also register via PowerShell:
-```powershell
-Register-AzResourceProvider -ProviderNamespace Microsoft.ContainerInstance
-Register-AzResourceProvider -ProviderNamespace Microsoft.Storage
-```
-
-Or Azure CLI:
-```bash
-az provider register --namespace Microsoft.ContainerInstance
-az provider register --namespace Microsoft.Storage
-```
-
 ### New tenant checklist
 
 If deploying to a **brand new tenant**, complete these steps before deploying or certain features will fail:
@@ -185,4 +162,4 @@ Cause: The "Enable Scheduled alert rules" checkbox was not ticked, or no severit
 Cause: The managed identity did not receive its subscription Contributor role in time. The template includes a 2-minute sleep to handle this, but on slow tenants it can occasionally still fail. Re-running the deployment resolves it.
 
 **Deployment times out at exactly 1200 seconds ("Action sequencer job exceeded max allowed time")**
-Cause: The `Microsoft.ContainerInstance` resource provider is not registered on your subscription. Azure Deployment Scripts run inside Container Instances, and provider registration can take longer than the 1200-second container lifetime limit. Register the provider before deploying — see [Required resource providers](#required-resource-providers) above. This is a one-time fix per subscription.
+Cause: The deployment scripts (solution install, rule creation, diagnostic settings) each run in separate Azure Container Instance containers, and each container takes 30–60 seconds to start. On a large fresh deployment, the cumulative time across all containers can approach or exceed the 1200-second ARM limit. Re-deploying should be faster on subsequent runs as existing rules are skipped.

@@ -91,7 +91,7 @@ if (($SeveritiesToInclude -eq "None") -or ($null -eq $SeveritiesToInclude)) {
 }
 
 #Give the system time to update all the needed databases before trying to install the rules.
-Start-Sleep -Seconds 60
+Start-Sleep -Seconds 15
 
 #URL to get all the needed Analytic Rule templates
 $solutionURL = $baseUri + "/providers/Microsoft.SecurityInsights/contentTemplates?api-version=2023-05-01-preview"
@@ -99,19 +99,35 @@ $solutionURL = $baseUri + "/providers/Microsoft.SecurityInsights/contentTemplate
 $solutionURL += "&%24filter=(properties%2FcontentKind%20eq%20'AnalyticsRule')"
 
 $results = (Invoke-RestMethod -Uri $solutionURL -Method Get -Headers $authHeader).value
-  
+
 $BaseAlertUri = $baseUri + "/providers/Microsoft.SecurityInsights/alertRules/"
 $BaseMetaURI = $baseURI + "/providers/Microsoft.SecurityInsights/metadata/analyticsrule-"
 
+# Build a set of template names that already have an active rule to avoid duplicates on re-deployment
+$existingRulesUrl = $baseUri + "/providers/Microsoft.SecurityInsights/alertRules?api-version=2022-12-01-preview"
+$existingRules = (Invoke-RestMethod -Uri $existingRulesUrl -Method Get -Headers $authHeader).value
+$existingTemplateNames = @{}
+foreach ($rule in $existingRules) {
+    $templateName = $rule.properties.alertRuleTemplateName
+    if ($templateName) {
+        $existingTemplateNames[$templateName] = $true
+    }
+}
+Write-Host "Found $($existingTemplateNames.Count) existing rules — skipping templates already deployed."
 
 Write-Host "Severities to include..." $SeveritiesToInclude
 #Iterate through all the rule templates
 foreach ($result in $results ) {
     #Make sure that the template's severity is one we want to include
     $severity = $result.properties.mainTemplate.resources.properties[0].severity
-    Write-Host "Rule Template's severity is... " $severity 
-    #Write-Host "condition is..." $SeveritiesToInclude.Contains($severity)   
+    Write-Host "Rule Template's severity is... " $severity
     if ($SeveritiesToInclude.Contains($severity)) {
+        $templateName = $result.properties.mainTemplate.resources[0].name
+        if ($existingTemplateNames.ContainsKey($templateName)) {
+            Write-Host "Skipping (already exists): $templateName"
+            continue
+        }
+
         Write-Host "Enabling alert rule template... " $result.properties.template.resources.properties.displayName
 
         $templateVersion = $result.properties.mainTemplate.resources.properties[1].version
@@ -127,13 +143,13 @@ foreach ($result in $results ) {
         $properties.enabled = $true
         #Add the field to link this rule with the rule template so that the rule template will show up as used
         #We had to use the "Add-Member" command since this field does not exist in the rule template that we are copying from.
-        $properties | Add-Member -NotePropertyName "alertRuleTemplateName" -NotePropertyValue $result.properties.mainTemplate.resources[0].name
+        $properties | Add-Member -NotePropertyName "alertRuleTemplateName" -NotePropertyValue $templateName
         $properties | Add-Member -NotePropertyName "templateVersion" -NotePropertyValue $result.properties.mainTemplate.resources[1].properties.version
 
 
         #Depending on the type of alert we are creating, the body has different parameters
         switch ($kind) {
-            "MicrosoftSecurityIncidentCreation" {  
+            "MicrosoftSecurityIncidentCreation" {
                 $body = @{
                     "kind"       = "MicrosoftSecurityIncidentCreation"
                     "properties" = $properties
@@ -150,7 +166,7 @@ foreach ($result in $results ) {
                     "kind"       = "Scheduled"
                     "properties" = $properties
                 }
-                
+
             }
             Default { }
         }
@@ -163,7 +179,6 @@ foreach ($result in $results ) {
             try {
                 Write-Host "Attempting to create rule $($displayName)"
                 $verdict = Invoke-RestMethod -Uri $alertUri -Method Put -Headers $authHeader -Body ($body | ConvertTo-Json -EnumsAsStrings -Depth 50)
-                #Invoke-RestMethod -Uri $installURL -Method Put -Headers $authHeader -Body ($installBody | ConvertTo-Json -EnumsAsStrings -Depth 50)
                 Write-Output "Succeeded"
                 $solution = $allSolutions.properties | Where-Object -Property "contentId" -Contains $result.properties.packageId
                 $metabody = @{

@@ -95,6 +95,7 @@ These are configured automatically by the deployment:
 
 | Connector | Notes |
 |---|---|
+| **Microsoft Entra ID** | Configures tenant-level diagnostic settings to forward sign-in, audit, service principal, managed identity, and identity risk logs. Requires Global Administrator or Security Administrator. |
 | **Azure Activity** | Configures a subscription-level diagnostic setting to forward all activity log categories. Requires Owner on subscription. |
 | **Microsoft Defender XDR** | Enables incident and alert sync between XDR and Sentinel. Requires Security Administrator. |
 | **Microsoft 365** | Connects Exchange Online, SharePoint, and Teams activity logs. Requires Security Administrator. |
@@ -134,9 +135,7 @@ These configure diagnostic settings on existing resources in your subscription, 
 
 After the deployment completes, complete these manual steps:
 
-1. **Connect Microsoft Entra ID** — go to Sentinel > Data connectors > Microsoft Entra ID > Open connector page and click Connect. This enables sign-in and audit log ingestion.
-
-2. **Configure Defender for Cloud Apps and Identity Protection** (if needed) — if you need these connectors, configure them via the **Microsoft Defender XDR portal** under Settings > Microsoft Sentinel, not from Sentinel directly.
+1. **Configure Defender for Cloud Apps and Identity Protection** (if needed) — if you need these connectors, configure them via the **Microsoft Defender XDR portal** under Settings > Microsoft Sentinel, not from Sentinel directly.
 
 3. **Configure diagnostics for future resources** — the deployment only configures diagnostics on resources that exist at deploy time. For resources created afterwards, either re-run the deployment or configure Azure Policy to automate this going forward.
 

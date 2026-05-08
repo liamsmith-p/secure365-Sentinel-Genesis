@@ -194,8 +194,7 @@ foreach ($result in $results ) {
                 $errorReturn = $_
                 Write-Error $errorReturn
             }
-            #This pauses for 5 second so that we don't overload the workspace.
-            Start-Sleep -Seconds 1
+            Start-Sleep -Milliseconds 200
         }
     }
 }

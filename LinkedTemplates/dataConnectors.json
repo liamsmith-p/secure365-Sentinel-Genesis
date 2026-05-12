@@ -43,6 +43,29 @@
     },
     "resources": [
         {
+            "condition": "[contains(parameters('enableDataConnectors'), 'MicrosoftEntraID')]",
+            "type": "microsoft.aadiam/diagnosticSettings",
+            "apiVersion": "2017-04-01",
+            "scope": "/",
+            "name": "[concat(parameters('workspaceName'), '-entraIdDiagnosticSettings')]",
+            "properties": {
+                "workspaceId": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspaceName'))]",
+                "logs": [
+                    { "category": "SignInLogs",                   "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
+                    { "category": "AuditLogs",                    "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
+                    { "category": "NonInteractiveUserSignInLogs", "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
+                    { "category": "ServicePrincipalSignInLogs",   "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
+                    { "category": "ManagedIdentitySignInLogs",    "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
+                    { "category": "ProvisioningLogs",             "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
+                    { "category": "ADFSSignInLogs",               "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
+                    { "category": "RiskyUsers",                   "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
+                    { "category": "UserRiskEvents",               "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
+                    { "category": "RiskyServicePrincipals",       "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
+                    { "category": "ServicePrincipalRiskEvents",   "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } }
+                ]
+            }
+        },
+        {
             "condition": "[contains(parameters('enableDataConnectors'), 'AzureActiveDirectoryIDP')]",
             "type": "Microsoft.OperationalInsights/workspaces/providers/dataConnectors",
             "apiVersion": "2020-01-01",

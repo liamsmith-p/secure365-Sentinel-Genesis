@@ -284,7 +284,7 @@
                         "visible": true,
                         "options": {
                             "icon": "Info",
-                            "text": "Select which Data Connectors to configure. Microsoft Entra ID logs must be connected manually after deployment — see the post-deployment steps. Do NOT select items marked CAUTION if your tenant uses the Microsoft Defender XDR portal.",
+                            "text": "Select which Data Connectors to configure. Do NOT select items marked CAUTION if your tenant uses the Microsoft Defender XDR portal.",
                             "uri": "https://learn.microsoft.com/azure/sentinel/data-connectors-reference"
                         }
                     },
@@ -301,6 +301,11 @@
                         "toolTip": "Select the data connectors that you would like to enable",
                         "constraints": {
                             "allowedValues": [
+                                {
+                                    "label": "Microsoft Entra ID",
+                                    "description": "Configures tenant-level diagnostic settings to forward sign-in, audit, non-interactive, service principal, managed identity, provisioning, and identity risk logs to Sentinel. Requires Global Administrator or Security Administrator.",
+                                    "value": "MicrosoftEntraID"
+                                },
                                 {
                                     "label": "Azure Activity",
                                     "description": "Ingest Azure subscription Activity logs (administrative, security, service health, policy, etc.) into Sentinel via subscription-level diagnostic settings. Subscription Owner or Contributor permission required.",

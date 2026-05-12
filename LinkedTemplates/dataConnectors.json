@@ -177,53 +177,6 @@
             }
         },
         {
-            "condition": "[contains(parameters('enableDataConnectors'), 'MicrosoftEntraID')]",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2021-04-01",
-            "name": "entraIdDiagnosticSettings",
-            "scope": "/",
-            "location": "[parameters('location')]",
-            "properties": {
-                "mode": "Incremental",
-                "expressionEvaluationOptions": {
-                    "scope": "inner"
-                },
-                "template": {
-                    "$schema": "https://schema.management.azure.com/schemas/2019-08-01/tenantDeploymentTemplate.json#",
-                    "contentVersion": "1.0.0.0",
-                    "parameters": {
-                        "workspaceId": { "type": "string" }
-                    },
-                    "resources": [
-                        {
-                            "type": "Microsoft.aadiam/diagnosticSettings",
-                            "apiVersion": "2017-04-01",
-                            "name": "entraIdToSentinel",
-                            "properties": {
-                                "workspaceId": "[parameters('workspaceId')]",
-                                "logs": [
-                                    { "category": "SignInLogs",                   "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
-                                    { "category": "AuditLogs",                    "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
-                                    { "category": "NonInteractiveUserSignInLogs", "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
-                                    { "category": "ServicePrincipalSignInLogs",   "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
-                                    { "category": "ManagedIdentitySignInLogs",    "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
-                                    { "category": "RiskyUsers",                   "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
-                                    { "category": "UserRiskEvents",               "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
-                                    { "category": "ServicePrincipalRiskEvents",   "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
-                                    { "category": "RiskyServicePrincipals",       "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } }
-                                ]
-                            }
-                        }
-                    ]
-                },
-                "parameters": {
-                    "workspaceId": {
-                        "value": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspaceName'))]"
-                    }
-                }
-            }
-        },
-        {
             "condition": "[contains(parameters('enableDataConnectors'), 'Office365')]",
             "type": "Microsoft.OperationalInsights/workspaces/providers/dataConnectors",
             "apiVersion": "2020-01-01",

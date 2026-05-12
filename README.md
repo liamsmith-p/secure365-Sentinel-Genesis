@@ -95,6 +95,7 @@ These are configured automatically by the deployment:
 
 | Connector | Notes |
 |---|---|
+| **Microsoft Entra ID** | Configures tenant-level diagnostic settings to forward sign-in, audit, service principal, managed identity, and identity risk logs. Deployed via a tenant-scope nested deployment using your credentials. Requires Global Administrator or Security Administrator. |
 | **Azure Activity** | Configures a subscription-level diagnostic setting to forward all activity log categories. Requires Owner on subscription. |
 | **Microsoft Defender XDR** | Enables incident and alert sync between XDR and Sentinel. Requires Security Administrator. |
 | **Microsoft 365** | Connects Exchange Online, SharePoint, and Teams activity logs. Requires Security Administrator. |
@@ -102,8 +103,6 @@ These are configured automatically by the deployment:
 | **Threat Intelligence** | Imports threat indicators for use in analytics rules. |
 | **Microsoft Entra ID Identity Protection** ⚠️ | Do **not** select if your tenant uses Microsoft Defender XDR — Identity Protection is managed by the XDR portal and enabling it here will cause a conflict error. Configure via the Defender portal instead. |
 | **Microsoft Defender for Cloud Apps** ⚠️ | Do **not** select if your tenant manages Defender for Cloud Apps through the Microsoft Defender XDR portal — it will fail with a conflict error. Configure via the Defender portal instead. |
-
-> **Microsoft Entra ID** logs require a manual step. `Microsoft.aadiam/diagnosticSettings` is a tenant-level resource that cannot be deployed from a resource group-scoped ARM template — it requires a Global Administrator or Security Administrator to configure directly. After deployment, go to **Sentinel > Data connectors > Microsoft Entra ID** and connect each log category — this takes about 30 seconds.
 
 #### Azure Diagnostics (resource-level)
 

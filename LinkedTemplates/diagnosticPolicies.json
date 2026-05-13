@@ -72,7 +72,7 @@
                                             "name": "sentinel-diagnostics",
                                             "existenceCondition": {
                                                 "field": "Microsoft.Insights/diagnosticSettings/workspaceId",
-                                                "equals": "[parameters('workspaceId')]"
+                                                "equals": "[[parameters('workspaceId')]"
                                             },
                                             "roleDefinitionIds": [
                                                 "/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c"
@@ -82,7 +82,7 @@
                                                     "mode": "incremental",
                                                     "parameters": {
                                                         "resourceId":  { "value": "[[field('id')]" },
-                                                        "workspaceId": { "value": "[parameters('workspaceId')]" }
+                                                        "workspaceId": { "value": "[[parameters('workspaceId')]" }
                                                     },
                                                     "template": {
                                                         "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
@@ -183,7 +183,7 @@
                                             "name": "sentinel-diagnostics",
                                             "existenceCondition": {
                                                 "field": "Microsoft.Insights/diagnosticSettings/workspaceId",
-                                                "equals": "[parameters('workspaceId')]"
+                                                "equals": "[[parameters('workspaceId')]"
                                             },
                                             "roleDefinitionIds": [
                                                 "/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c"
@@ -193,7 +193,7 @@
                                                     "mode": "incremental",
                                                     "parameters": {
                                                         "resourceId":  { "value": "[[field('id')]" },
-                                                        "workspaceId": { "value": "[parameters('workspaceId')]" }
+                                                        "workspaceId": { "value": "[[parameters('workspaceId')]" }
                                                     },
                                                     "template": {
                                                         "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
@@ -295,7 +295,7 @@
                                             "name": "sentinel-diagnostics",
                                             "existenceCondition": {
                                                 "field": "Microsoft.Insights/diagnosticSettings/workspaceId",
-                                                "equals": "[parameters('workspaceId')]"
+                                                "equals": "[[parameters('workspaceId')]"
                                             },
                                             "roleDefinitionIds": [
                                                 "/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c"
@@ -305,7 +305,7 @@
                                                     "mode": "incremental",
                                                     "parameters": {
                                                         "resourceId":  { "value": "[[field('id')]" },
-                                                        "workspaceId": { "value": "[parameters('workspaceId')]" }
+                                                        "workspaceId": { "value": "[[parameters('workspaceId')]" }
                                                     },
                                                     "template": {
                                                         "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
@@ -471,7 +471,7 @@
                                             "name": "sentinel-diagnostics",
                                             "existenceCondition": {
                                                 "field": "Microsoft.Insights/diagnosticSettings/workspaceId",
-                                                "equals": "[parameters('workspaceId')]"
+                                                "equals": "[[parameters('workspaceId')]"
                                             },
                                             "roleDefinitionIds": [
                                                 "/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c"
@@ -481,7 +481,7 @@
                                                     "mode": "incremental",
                                                     "parameters": {
                                                         "resourceId":  { "value": "[[field('id')]" },
-                                                        "workspaceId": { "value": "[parameters('workspaceId')]" }
+                                                        "workspaceId": { "value": "[[parameters('workspaceId')]" }
                                                     },
                                                     "template": {
                                                         "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",

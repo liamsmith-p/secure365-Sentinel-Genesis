@@ -1,0 +1,577 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "workspaceName": {
+            "type": "string"
+        },
+        "location": {
+            "type": "string"
+        },
+        "enableDiagnosticPolicies": {
+            "type": "array",
+            "defaultValue": []
+        }
+    },
+    "variables": {
+        "workspaceId": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspaceName'))]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2021-04-01",
+            "name": "diagnosticPolicyDeployment",
+            "location": "[parameters('location')]",
+            "subscriptionId": "[subscription().subscriptionId]",
+            "properties": {
+                "mode": "Incremental",
+                "expressionEvaluationOptions": {
+                    "scope": "inner"
+                },
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {
+                        "workspaceId": { "type": "string" },
+                        "location": { "type": "string" },
+                        "enableDiagnosticPolicies": { "type": "array" }
+                    },
+                    "variables": {
+                        "contributorRoleId": "b24988ac-6180-42a0-ab88-20f7382dd24c",
+                        "kvPolicyName":      "[guid(subscription().id, 'sentinel-kv-diag-policy')]",
+                        "nsgPolicyName":     "[guid(subscription().id, 'sentinel-nsg-diag-policy')]",
+                        "storagePolicyName": "[guid(subscription().id, 'sentinel-storage-diag-policy')]",
+                        "sqlPolicyName":     "[guid(subscription().id, 'sentinel-sql-diag-policy')]",
+                        "kvAssignName":      "[guid(subscription().id, 'sentinel-kv-diag-assign')]",
+                        "nsgAssignName":     "[guid(subscription().id, 'sentinel-nsg-diag-assign')]",
+                        "storageAssignName": "[guid(subscription().id, 'sentinel-storage-diag-assign')]",
+                        "sqlAssignName":     "[guid(subscription().id, 'sentinel-sql-diag-assign')]"
+                    },
+                    "resources": [
+
+                        // ── KEY VAULT ──────────────────────────────────────────────────────────
+
+                        {
+                            "condition": "[contains(parameters('enableDiagnosticPolicies'), 'AzureKeyVault')]",
+                            "type": "Microsoft.Authorization/policyDefinitions",
+                            "apiVersion": "2021-06-01",
+                            "name": "[variables('kvPolicyName')]",
+                            "properties": {
+                                "displayName": "Sentinel - Deploy diagnostic settings for Key Vault",
+                                "policyType": "Custom",
+                                "mode": "Indexed",
+                                "parameters": {
+                                    "workspaceId": { "type": "String", "metadata": { "displayName": "Log Analytics workspace ID" } }
+                                },
+                                "policyRule": {
+                                    "if": { "field": "type", "equals": "Microsoft.KeyVault/vaults" },
+                                    "then": {
+                                        "effect": "deployIfNotExists",
+                                        "details": {
+                                            "type": "Microsoft.Insights/diagnosticSettings",
+                                            "name": "sentinel-diagnostics",
+                                            "existenceCondition": {
+                                                "field": "Microsoft.Insights/diagnosticSettings/workspaceId",
+                                                "equals": "[parameters('workspaceId')]"
+                                            },
+                                            "roleDefinitionIds": [
+                                                "/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c"
+                                            ],
+                                            "deployment": {
+                                                "properties": {
+                                                    "mode": "incremental",
+                                                    "parameters": {
+                                                        "resourceId":  { "value": "[field('id')]" },
+                                                        "workspaceId": { "value": "[parameters('workspaceId')]" }
+                                                    },
+                                                    "template": {
+                                                        "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                                                        "contentVersion": "1.0.0.0",
+                                                        "parameters": {
+                                                            "resourceId":  { "type": "string" },
+                                                            "workspaceId": { "type": "string" }
+                                                        },
+                                                        "resources": [
+                                                            {
+                                                                "type": "Microsoft.Insights/diagnosticSettings",
+                                                                "apiVersion": "2021-05-01-preview",
+                                                                "name": "sentinel-diagnostics",
+                                                                "scope": "[parameters('resourceId')]",
+                                                                "properties": {
+                                                                    "workspaceId": "[parameters('workspaceId')]",
+                                                                    "logs": [
+                                                                        { "category": "AuditEvent", "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } }
+                                                                    ],
+                                                                    "metrics": []
+                                                                }
+                                                            }
+                                                        ]
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "condition": "[contains(parameters('enableDiagnosticPolicies'), 'AzureKeyVault')]",
+                            "type": "Microsoft.Authorization/policyAssignments",
+                            "apiVersion": "2022-06-01",
+                            "name": "[variables('kvAssignName')]",
+                            "location": "[parameters('location')]",
+                            "identity": { "type": "SystemAssigned" },
+                            "properties": {
+                                "displayName": "Sentinel - Key Vault diagnostic settings",
+                                "policyDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('kvPolicyName'))]",
+                                "parameters": {
+                                    "workspaceId": { "value": "[parameters('workspaceId')]" }
+                                }
+                            },
+                            "dependsOn": [
+                                "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('kvPolicyName'))]"
+                            ]
+                        },
+                        {
+                            "condition": "[contains(parameters('enableDiagnosticPolicies'), 'AzureKeyVault')]",
+                            "type": "Microsoft.Authorization/roleAssignments",
+                            "apiVersion": "2022-04-01",
+                            "name": "[guid(variables('kvAssignName'), variables('contributorRoleId'))]",
+                            "properties": {
+                                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('contributorRoleId'))]",
+                                "principalId": "[reference(subscriptionResourceId('Microsoft.Authorization/policyAssignments', variables('kvAssignName')), '2022-06-01', 'Full').identity.principalId]",
+                                "principalType": "ServicePrincipal"
+                            },
+                            "dependsOn": [
+                                "[subscriptionResourceId('Microsoft.Authorization/policyAssignments', variables('kvAssignName'))]"
+                            ]
+                        },
+                        {
+                            "condition": "[contains(parameters('enableDiagnosticPolicies'), 'AzureKeyVault')]",
+                            "type": "Microsoft.PolicyInsights/remediations",
+                            "apiVersion": "2021-10-01",
+                            "name": "sentinel-kv-diag-remediation",
+                            "properties": {
+                                "policyAssignmentId": "[subscriptionResourceId('Microsoft.Authorization/policyAssignments', variables('kvAssignName'))]",
+                                "resourceDiscoveryMode": "ReEvaluateCompliance"
+                            },
+                            "dependsOn": [
+                                "[guid(variables('kvAssignName'), variables('contributorRoleId'))]"
+                            ]
+                        },
+
+                        // ── NETWORK SECURITY GROUPS ────────────────────────────────────────────
+
+                        {
+                            "condition": "[contains(parameters('enableDiagnosticPolicies'), 'AzureNetworkSecurityGroup')]",
+                            "type": "Microsoft.Authorization/policyDefinitions",
+                            "apiVersion": "2021-06-01",
+                            "name": "[variables('nsgPolicyName')]",
+                            "properties": {
+                                "displayName": "Sentinel - Deploy diagnostic settings for NSG",
+                                "policyType": "Custom",
+                                "mode": "Indexed",
+                                "parameters": {
+                                    "workspaceId": { "type": "String", "metadata": { "displayName": "Log Analytics workspace ID" } }
+                                },
+                                "policyRule": {
+                                    "if": { "field": "type", "equals": "Microsoft.Network/networkSecurityGroups" },
+                                    "then": {
+                                        "effect": "deployIfNotExists",
+                                        "details": {
+                                            "type": "Microsoft.Insights/diagnosticSettings",
+                                            "name": "sentinel-diagnostics",
+                                            "existenceCondition": {
+                                                "field": "Microsoft.Insights/diagnosticSettings/workspaceId",
+                                                "equals": "[parameters('workspaceId')]"
+                                            },
+                                            "roleDefinitionIds": [
+                                                "/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c"
+                                            ],
+                                            "deployment": {
+                                                "properties": {
+                                                    "mode": "incremental",
+                                                    "parameters": {
+                                                        "resourceId":  { "value": "[field('id')]" },
+                                                        "workspaceId": { "value": "[parameters('workspaceId')]" }
+                                                    },
+                                                    "template": {
+                                                        "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                                                        "contentVersion": "1.0.0.0",
+                                                        "parameters": {
+                                                            "resourceId":  { "type": "string" },
+                                                            "workspaceId": { "type": "string" }
+                                                        },
+                                                        "resources": [
+                                                            {
+                                                                "type": "Microsoft.Insights/diagnosticSettings",
+                                                                "apiVersion": "2021-05-01-preview",
+                                                                "name": "sentinel-diagnostics",
+                                                                "scope": "[parameters('resourceId')]",
+                                                                "properties": {
+                                                                    "workspaceId": "[parameters('workspaceId')]",
+                                                                    "logs": [
+                                                                        { "category": "NetworkSecurityGroupEvent",       "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
+                                                                        { "category": "NetworkSecurityGroupRuleCounter", "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } }
+                                                                    ],
+                                                                    "metrics": []
+                                                                }
+                                                            }
+                                                        ]
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "condition": "[contains(parameters('enableDiagnosticPolicies'), 'AzureNetworkSecurityGroup')]",
+                            "type": "Microsoft.Authorization/policyAssignments",
+                            "apiVersion": "2022-06-01",
+                            "name": "[variables('nsgAssignName')]",
+                            "location": "[parameters('location')]",
+                            "identity": { "type": "SystemAssigned" },
+                            "properties": {
+                                "displayName": "Sentinel - NSG diagnostic settings",
+                                "policyDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('nsgPolicyName'))]",
+                                "parameters": {
+                                    "workspaceId": { "value": "[parameters('workspaceId')]" }
+                                }
+                            },
+                            "dependsOn": [
+                                "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('nsgPolicyName'))]"
+                            ]
+                        },
+                        {
+                            "condition": "[contains(parameters('enableDiagnosticPolicies'), 'AzureNetworkSecurityGroup')]",
+                            "type": "Microsoft.Authorization/roleAssignments",
+                            "apiVersion": "2022-04-01",
+                            "name": "[guid(variables('nsgAssignName'), variables('contributorRoleId'))]",
+                            "properties": {
+                                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('contributorRoleId'))]",
+                                "principalId": "[reference(subscriptionResourceId('Microsoft.Authorization/policyAssignments', variables('nsgAssignName')), '2022-06-01', 'Full').identity.principalId]",
+                                "principalType": "ServicePrincipal"
+                            },
+                            "dependsOn": [
+                                "[subscriptionResourceId('Microsoft.Authorization/policyAssignments', variables('nsgAssignName'))]"
+                            ]
+                        },
+                        {
+                            "condition": "[contains(parameters('enableDiagnosticPolicies'), 'AzureNetworkSecurityGroup')]",
+                            "type": "Microsoft.PolicyInsights/remediations",
+                            "apiVersion": "2021-10-01",
+                            "name": "sentinel-nsg-diag-remediation",
+                            "properties": {
+                                "policyAssignmentId": "[subscriptionResourceId('Microsoft.Authorization/policyAssignments', variables('nsgAssignName'))]",
+                                "resourceDiscoveryMode": "ReEvaluateCompliance"
+                            },
+                            "dependsOn": [
+                                "[guid(variables('nsgAssignName'), variables('contributorRoleId'))]"
+                            ]
+                        },
+
+                        // ── STORAGE ACCOUNTS ───────────────────────────────────────────────────
+
+                        {
+                            "condition": "[contains(parameters('enableDiagnosticPolicies'), 'AzureStorageAccount')]",
+                            "type": "Microsoft.Authorization/policyDefinitions",
+                            "apiVersion": "2021-06-01",
+                            "name": "[variables('storagePolicyName')]",
+                            "properties": {
+                                "displayName": "Sentinel - Deploy diagnostic settings for Storage Account",
+                                "policyType": "Custom",
+                                "mode": "Indexed",
+                                "parameters": {
+                                    "workspaceId": { "type": "String", "metadata": { "displayName": "Log Analytics workspace ID" } }
+                                },
+                                "policyRule": {
+                                    "if": { "field": "type", "equals": "Microsoft.Storage/storageAccounts" },
+                                    "then": {
+                                        "effect": "deployIfNotExists",
+                                        "details": {
+                                            "type": "Microsoft.Insights/diagnosticSettings",
+                                            "name": "sentinel-diagnostics",
+                                            "existenceCondition": {
+                                                "field": "Microsoft.Insights/diagnosticSettings/workspaceId",
+                                                "equals": "[parameters('workspaceId')]"
+                                            },
+                                            "roleDefinitionIds": [
+                                                "/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c"
+                                            ],
+                                            "deployment": {
+                                                "properties": {
+                                                    "mode": "incremental",
+                                                    "parameters": {
+                                                        "resourceId":  { "value": "[field('id')]" },
+                                                        "workspaceId": { "value": "[parameters('workspaceId')]" }
+                                                    },
+                                                    "template": {
+                                                        "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                                                        "contentVersion": "1.0.0.0",
+                                                        "parameters": {
+                                                            "resourceId":  { "type": "string" },
+                                                            "workspaceId": { "type": "string" }
+                                                        },
+                                                        "resources": [
+                                                            {
+                                                                "type": "Microsoft.Insights/diagnosticSettings",
+                                                                "apiVersion": "2021-05-01-preview",
+                                                                "name": "sentinel-diagnostics",
+                                                                "scope": "[parameters('resourceId')]",
+                                                                "properties": {
+                                                                    "workspaceId": "[parameters('workspaceId')]",
+                                                                    "logs": [],
+                                                                    "metrics": [
+                                                                        { "category": "Transaction", "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } }
+                                                                    ]
+                                                                }
+                                                            },
+                                                            {
+                                                                "type": "Microsoft.Insights/diagnosticSettings",
+                                                                "apiVersion": "2021-05-01-preview",
+                                                                "name": "sentinel-diagnostics",
+                                                                "scope": "[concat(parameters('resourceId'), '/blobServices/default')]",
+                                                                "properties": {
+                                                                    "workspaceId": "[parameters('workspaceId')]",
+                                                                    "logs": [
+                                                                        { "category": "StorageRead",   "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
+                                                                        { "category": "StorageWrite",  "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
+                                                                        { "category": "StorageDelete", "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } }
+                                                                    ],
+                                                                    "metrics": []
+                                                                }
+                                                            },
+                                                            {
+                                                                "type": "Microsoft.Insights/diagnosticSettings",
+                                                                "apiVersion": "2021-05-01-preview",
+                                                                "name": "sentinel-diagnostics",
+                                                                "scope": "[concat(parameters('resourceId'), '/queueServices/default')]",
+                                                                "properties": {
+                                                                    "workspaceId": "[parameters('workspaceId')]",
+                                                                    "logs": [
+                                                                        { "category": "StorageRead",   "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
+                                                                        { "category": "StorageWrite",  "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
+                                                                        { "category": "StorageDelete", "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } }
+                                                                    ],
+                                                                    "metrics": []
+                                                                }
+                                                            },
+                                                            {
+                                                                "type": "Microsoft.Insights/diagnosticSettings",
+                                                                "apiVersion": "2021-05-01-preview",
+                                                                "name": "sentinel-diagnostics",
+                                                                "scope": "[concat(parameters('resourceId'), '/tableServices/default')]",
+                                                                "properties": {
+                                                                    "workspaceId": "[parameters('workspaceId')]",
+                                                                    "logs": [
+                                                                        { "category": "StorageRead",   "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
+                                                                        { "category": "StorageWrite",  "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
+                                                                        { "category": "StorageDelete", "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } }
+                                                                    ],
+                                                                    "metrics": []
+                                                                }
+                                                            },
+                                                            {
+                                                                "type": "Microsoft.Insights/diagnosticSettings",
+                                                                "apiVersion": "2021-05-01-preview",
+                                                                "name": "sentinel-diagnostics",
+                                                                "scope": "[concat(parameters('resourceId'), '/fileServices/default')]",
+                                                                "properties": {
+                                                                    "workspaceId": "[parameters('workspaceId')]",
+                                                                    "logs": [
+                                                                        { "category": "StorageRead",   "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
+                                                                        { "category": "StorageWrite",  "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
+                                                                        { "category": "StorageDelete", "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } }
+                                                                    ],
+                                                                    "metrics": []
+                                                                }
+                                                            }
+                                                        ]
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "condition": "[contains(parameters('enableDiagnosticPolicies'), 'AzureStorageAccount')]",
+                            "type": "Microsoft.Authorization/policyAssignments",
+                            "apiVersion": "2022-06-01",
+                            "name": "[variables('storageAssignName')]",
+                            "location": "[parameters('location')]",
+                            "identity": { "type": "SystemAssigned" },
+                            "properties": {
+                                "displayName": "Sentinel - Storage Account diagnostic settings",
+                                "policyDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('storagePolicyName'))]",
+                                "parameters": {
+                                    "workspaceId": { "value": "[parameters('workspaceId')]" }
+                                }
+                            },
+                            "dependsOn": [
+                                "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('storagePolicyName'))]"
+                            ]
+                        },
+                        {
+                            "condition": "[contains(parameters('enableDiagnosticPolicies'), 'AzureStorageAccount')]",
+                            "type": "Microsoft.Authorization/roleAssignments",
+                            "apiVersion": "2022-04-01",
+                            "name": "[guid(variables('storageAssignName'), variables('contributorRoleId'))]",
+                            "properties": {
+                                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('contributorRoleId'))]",
+                                "principalId": "[reference(subscriptionResourceId('Microsoft.Authorization/policyAssignments', variables('storageAssignName')), '2022-06-01', 'Full').identity.principalId]",
+                                "principalType": "ServicePrincipal"
+                            },
+                            "dependsOn": [
+                                "[subscriptionResourceId('Microsoft.Authorization/policyAssignments', variables('storageAssignName'))]"
+                            ]
+                        },
+                        {
+                            "condition": "[contains(parameters('enableDiagnosticPolicies'), 'AzureStorageAccount')]",
+                            "type": "Microsoft.PolicyInsights/remediations",
+                            "apiVersion": "2021-10-01",
+                            "name": "sentinel-storage-diag-remediation",
+                            "properties": {
+                                "policyAssignmentId": "[subscriptionResourceId('Microsoft.Authorization/policyAssignments', variables('storageAssignName'))]",
+                                "resourceDiscoveryMode": "ReEvaluateCompliance"
+                            },
+                            "dependsOn": [
+                                "[guid(variables('storageAssignName'), variables('contributorRoleId'))]"
+                            ]
+                        },
+
+                        // ── SQL DATABASES ──────────────────────────────────────────────────────
+
+                        {
+                            "condition": "[contains(parameters('enableDiagnosticPolicies'), 'AzureSqlDatabase')]",
+                            "type": "Microsoft.Authorization/policyDefinitions",
+                            "apiVersion": "2021-06-01",
+                            "name": "[variables('sqlPolicyName')]",
+                            "properties": {
+                                "displayName": "Sentinel - Deploy diagnostic settings for SQL Database",
+                                "policyType": "Custom",
+                                "mode": "Indexed",
+                                "parameters": {
+                                    "workspaceId": { "type": "String", "metadata": { "displayName": "Log Analytics workspace ID" } }
+                                },
+                                "policyRule": {
+                                    "if": {
+                                        "allOf": [
+                                            { "field": "type", "equals": "Microsoft.Sql/servers/databases" },
+                                            { "field": "name", "notEquals": "master" }
+                                        ]
+                                    },
+                                    "then": {
+                                        "effect": "deployIfNotExists",
+                                        "details": {
+                                            "type": "Microsoft.Insights/diagnosticSettings",
+                                            "name": "sentinel-diagnostics",
+                                            "existenceCondition": {
+                                                "field": "Microsoft.Insights/diagnosticSettings/workspaceId",
+                                                "equals": "[parameters('workspaceId')]"
+                                            },
+                                            "roleDefinitionIds": [
+                                                "/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c"
+                                            ],
+                                            "deployment": {
+                                                "properties": {
+                                                    "mode": "incremental",
+                                                    "parameters": {
+                                                        "resourceId":  { "value": "[field('id')]" },
+                                                        "workspaceId": { "value": "[parameters('workspaceId')]" }
+                                                    },
+                                                    "template": {
+                                                        "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                                                        "contentVersion": "1.0.0.0",
+                                                        "parameters": {
+                                                            "resourceId":  { "type": "string" },
+                                                            "workspaceId": { "type": "string" }
+                                                        },
+                                                        "resources": [
+                                                            {
+                                                                "type": "Microsoft.Insights/diagnosticSettings",
+                                                                "apiVersion": "2021-05-01-preview",
+                                                                "name": "sentinel-diagnostics",
+                                                                "scope": "[parameters('resourceId')]",
+                                                                "properties": {
+                                                                    "workspaceId": "[parameters('workspaceId')]",
+                                                                    "logs": [
+                                                                        { "category": "SQLSecurityAuditEvents", "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
+                                                                        { "category": "SQLInsights",            "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
+                                                                        { "category": "Errors",                 "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
+                                                                        { "category": "Timeouts",               "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
+                                                                        { "category": "Blocks",                 "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
+                                                                        { "category": "Deadlocks",              "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } }
+                                                                    ],
+                                                                    "metrics": []
+                                                                }
+                                                            }
+                                                        ]
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "condition": "[contains(parameters('enableDiagnosticPolicies'), 'AzureSqlDatabase')]",
+                            "type": "Microsoft.Authorization/policyAssignments",
+                            "apiVersion": "2022-06-01",
+                            "name": "[variables('sqlAssignName')]",
+                            "location": "[parameters('location')]",
+                            "identity": { "type": "SystemAssigned" },
+                            "properties": {
+                                "displayName": "Sentinel - SQL Database diagnostic settings",
+                                "policyDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('sqlPolicyName'))]",
+                                "parameters": {
+                                    "workspaceId": { "value": "[parameters('workspaceId')]" }
+                                }
+                            },
+                            "dependsOn": [
+                                "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('sqlPolicyName'))]"
+                            ]
+                        },
+                        {
+                            "condition": "[contains(parameters('enableDiagnosticPolicies'), 'AzureSqlDatabase')]",
+                            "type": "Microsoft.Authorization/roleAssignments",
+                            "apiVersion": "2022-04-01",
+                            "name": "[guid(variables('sqlAssignName'), variables('contributorRoleId'))]",
+                            "properties": {
+                                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('contributorRoleId'))]",
+                                "principalId": "[reference(subscriptionResourceId('Microsoft.Authorization/policyAssignments', variables('sqlAssignName')), '2022-06-01', 'Full').identity.principalId]",
+                                "principalType": "ServicePrincipal"
+                            },
+                            "dependsOn": [
+                                "[subscriptionResourceId('Microsoft.Authorization/policyAssignments', variables('sqlAssignName'))]"
+                            ]
+                        },
+                        {
+                            "condition": "[contains(parameters('enableDiagnosticPolicies'), 'AzureSqlDatabase')]",
+                            "type": "Microsoft.PolicyInsights/remediations",
+                            "apiVersion": "2021-10-01",
+                            "name": "sentinel-sql-diag-remediation",
+                            "properties": {
+                                "policyAssignmentId": "[subscriptionResourceId('Microsoft.Authorization/policyAssignments', variables('sqlAssignName'))]",
+                                "resourceDiscoveryMode": "ReEvaluateCompliance"
+                            },
+                            "dependsOn": [
+                                "[guid(variables('sqlAssignName'), variables('contributorRoleId'))]"
+                            ]
+                        }
+
+                    ]
+                },
+                "parameters": {
+                    "workspaceId":               { "value": "[variables('workspaceId')]" },
+                    "location":                  { "value": "[parameters('location')]" },
+                    "enableDiagnosticPolicies":  { "value": "[parameters('enableDiagnosticPolicies')]" }
+                }
+            }
+        }
+    ]
+}

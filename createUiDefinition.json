@@ -347,6 +347,14 @@
                         "visible": true
                     },
                     {
+                        "name": "enableOngoingDiagnostics",
+                        "type": "Microsoft.Common.CheckBox",
+                        "label": "Enable Azure Policy for ongoing diagnostic settings enforcement",
+                        "toolTip": "Creates Azure Policy assignments (deployIfNotExists) for each selected resource type. New resources are automatically configured. Also triggers a remediation task to catch any existing non-compliant resources. Requires Owner on subscription.",
+                        "constraints": { "required": false },
+                        "visible": "[not(empty(steps('dataConnectors').enableDiagnosticPolicies))]"
+                    },
+                    {
                         "name": "infoBoxDiagnostics",
                         "type": "Microsoft.Common.InfoBox",
                         "visible": true,
@@ -464,6 +472,7 @@
             "enableSolutionsEssentials": "[steps('solutions').enableSolutionsEssentials]",
             "enableDataConnectors": "[steps('dataConnectors').enableDataConnectors]",
             "enableDiagnosticPolicies": "[steps('dataConnectors').enableDiagnosticPolicies]",
+            "enableOngoingDiagnostics": "[steps('dataConnectors').enableOngoingDiagnostics]",
             "aadStreams": [],
             "location": "[location()]",
             "enableScheduledAlerts": "[steps('analyticsRules').enableScheduledAlerts]",

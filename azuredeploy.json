@@ -98,6 +98,13 @@
             },
             "defaultValue": []
         },
+        "enableOngoingDiagnostics": {
+            "type": "bool",
+            "metadata": {
+                "description": "Whether to create Azure Policy assignments for ongoing diagnostic settings enforcement on new resources."
+            },
+            "defaultValue": false
+        },
         "_artifactsLocation": {
             "type": "string",
             "metadata": {
@@ -245,6 +252,33 @@
                 "mode": "Incremental",
                 "templateLink": {
                     "uri": "[uri(parameters('_artifactsLocation'), 'LinkedTemplates/diagnosticSettings.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "workspaceName": {
+                        "value": "[parameters('workspaceName')]"
+                    },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "enableDiagnosticPolicies": {
+                        "value": "[parameters('enableDiagnosticPolicies')]"
+                    }
+                }
+            }
+        },
+        {
+            "condition": "[and(parameters('enableOngoingDiagnostics'), not(empty(parameters('enableDiagnosticPolicies'))))]",
+            "name": "configureDiagnosticPolicies",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "dependsOn": [
+                "workspaceCreation"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[uri(parameters('_artifactsLocation'), 'LinkedTemplates/diagnosticPolicies.json')]",
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {

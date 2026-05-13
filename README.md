@@ -133,18 +133,14 @@ These configure diagnostic settings on existing resources in your subscription, 
 
 After the deployment completes, complete these manual steps:
 
-1. **Configure Defender for Cloud Apps and Identity Protection** (if needed) — if you need these connectors, configure them via the **Microsoft Defender XDR portal** under Settings > Microsoft Sentinel, not from Sentinel directly.
-
-3. **Configure diagnostics for future resources** — the deployment only configures diagnostics on resources that exist at deploy time. For resources created afterwards, either re-run the deployment or configure Azure Policy to automate this going forward.
-
-4. **Verify analytics rules** — go to Sentinel > Analytics and confirm rules were created. If none appear, check that you ticked "Enable Scheduled alert rules" and selected at least one severity level during deployment.
+1. **Configure Microsoft Defender XDR in the Defener portal.** under Settings > Microsoft Sentinel > Select new workspace and connect. This will automatically enable all Data Connectors in the XDR solution.
 
 ---
 
 ## Troubleshooting
 
 **"Changes to connector are disabled" / conflict error**
-Affects: Microsoft Entra ID Identity Protection, Microsoft Defender for Cloud Apps
+Affects: Microsoft Entra ID Identity Protection, Microsoft Defender for Cloud Apps, Microsoft Defender XDR
 Cause: These connectors are managed by the Microsoft Defender XDR portal when XDR is active. Do not select them in the Data Connectors tab.
 
 **"Polygon precondition failed" on EntityAnalytics**

@@ -81,7 +81,7 @@
                                                 "properties": {
                                                     "mode": "incremental",
                                                     "parameters": {
-                                                        "resourceId":  { "value": "[field('id')]" },
+                                                        "resourceId":  { "value": "[[field('id')]" },
                                                         "workspaceId": { "value": "[parameters('workspaceId')]" }
                                                     },
                                                     "template": {
@@ -96,9 +96,9 @@
                                                                 "type": "Microsoft.Insights/diagnosticSettings",
                                                                 "apiVersion": "2021-05-01-preview",
                                                                 "name": "sentinel-diagnostics",
-                                                                "scope": "[parameters('resourceId')]",
+                                                                "scope": "[[parameters('resourceId')]",
                                                                 "properties": {
-                                                                    "workspaceId": "[parameters('workspaceId')]",
+                                                                    "workspaceId": "[[parameters('workspaceId')]",
                                                                     "logs": [
                                                                         { "category": "AuditEvent", "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } }
                                                                     ],
@@ -192,7 +192,7 @@
                                                 "properties": {
                                                     "mode": "incremental",
                                                     "parameters": {
-                                                        "resourceId":  { "value": "[field('id')]" },
+                                                        "resourceId":  { "value": "[[field('id')]" },
                                                         "workspaceId": { "value": "[parameters('workspaceId')]" }
                                                     },
                                                     "template": {
@@ -207,9 +207,9 @@
                                                                 "type": "Microsoft.Insights/diagnosticSettings",
                                                                 "apiVersion": "2021-05-01-preview",
                                                                 "name": "sentinel-diagnostics",
-                                                                "scope": "[parameters('resourceId')]",
+                                                                "scope": "[[parameters('resourceId')]",
                                                                 "properties": {
-                                                                    "workspaceId": "[parameters('workspaceId')]",
+                                                                    "workspaceId": "[[parameters('workspaceId')]",
                                                                     "logs": [
                                                                         { "category": "NetworkSecurityGroupEvent",       "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
                                                                         { "category": "NetworkSecurityGroupRuleCounter", "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } }
@@ -304,7 +304,7 @@
                                                 "properties": {
                                                     "mode": "incremental",
                                                     "parameters": {
-                                                        "resourceId":  { "value": "[field('id')]" },
+                                                        "resourceId":  { "value": "[[field('id')]" },
                                                         "workspaceId": { "value": "[parameters('workspaceId')]" }
                                                     },
                                                     "template": {
@@ -319,9 +319,9 @@
                                                                 "type": "Microsoft.Insights/diagnosticSettings",
                                                                 "apiVersion": "2021-05-01-preview",
                                                                 "name": "sentinel-diagnostics",
-                                                                "scope": "[parameters('resourceId')]",
+                                                                "scope": "[[parameters('resourceId')]",
                                                                 "properties": {
-                                                                    "workspaceId": "[parameters('workspaceId')]",
+                                                                    "workspaceId": "[[parameters('workspaceId')]",
                                                                     "logs": [],
                                                                     "metrics": [
                                                                         { "category": "Transaction", "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } }
@@ -332,9 +332,9 @@
                                                                 "type": "Microsoft.Insights/diagnosticSettings",
                                                                 "apiVersion": "2021-05-01-preview",
                                                                 "name": "sentinel-diagnostics",
-                                                                "scope": "[concat(parameters('resourceId'), '/blobServices/default')]",
+                                                                "scope": "[[concat(parameters('resourceId'), '/blobServices/default')]",
                                                                 "properties": {
-                                                                    "workspaceId": "[parameters('workspaceId')]",
+                                                                    "workspaceId": "[[parameters('workspaceId')]",
                                                                     "logs": [
                                                                         { "category": "StorageRead",   "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
                                                                         { "category": "StorageWrite",  "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
@@ -347,9 +347,9 @@
                                                                 "type": "Microsoft.Insights/diagnosticSettings",
                                                                 "apiVersion": "2021-05-01-preview",
                                                                 "name": "sentinel-diagnostics",
-                                                                "scope": "[concat(parameters('resourceId'), '/queueServices/default')]",
+                                                                "scope": "[[concat(parameters('resourceId'), '/queueServices/default')]",
                                                                 "properties": {
-                                                                    "workspaceId": "[parameters('workspaceId')]",
+                                                                    "workspaceId": "[[parameters('workspaceId')]",
                                                                     "logs": [
                                                                         { "category": "StorageRead",   "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
                                                                         { "category": "StorageWrite",  "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
@@ -362,9 +362,9 @@
                                                                 "type": "Microsoft.Insights/diagnosticSettings",
                                                                 "apiVersion": "2021-05-01-preview",
                                                                 "name": "sentinel-diagnostics",
-                                                                "scope": "[concat(parameters('resourceId'), '/tableServices/default')]",
+                                                                "scope": "[[concat(parameters('resourceId'), '/tableServices/default')]",
                                                                 "properties": {
-                                                                    "workspaceId": "[parameters('workspaceId')]",
+                                                                    "workspaceId": "[[parameters('workspaceId')]",
                                                                     "logs": [
                                                                         { "category": "StorageRead",   "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
                                                                         { "category": "StorageWrite",  "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
@@ -377,9 +377,9 @@
                                                                 "type": "Microsoft.Insights/diagnosticSettings",
                                                                 "apiVersion": "2021-05-01-preview",
                                                                 "name": "sentinel-diagnostics",
-                                                                "scope": "[concat(parameters('resourceId'), '/fileServices/default')]",
+                                                                "scope": "[[concat(parameters('resourceId'), '/fileServices/default')]",
                                                                 "properties": {
-                                                                    "workspaceId": "[parameters('workspaceId')]",
+                                                                    "workspaceId": "[[parameters('workspaceId')]",
                                                                     "logs": [
                                                                         { "category": "StorageRead",   "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
                                                                         { "category": "StorageWrite",  "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
@@ -480,7 +480,7 @@
                                                 "properties": {
                                                     "mode": "incremental",
                                                     "parameters": {
-                                                        "resourceId":  { "value": "[field('id')]" },
+                                                        "resourceId":  { "value": "[[field('id')]" },
                                                         "workspaceId": { "value": "[parameters('workspaceId')]" }
                                                     },
                                                     "template": {
@@ -495,9 +495,9 @@
                                                                 "type": "Microsoft.Insights/diagnosticSettings",
                                                                 "apiVersion": "2021-05-01-preview",
                                                                 "name": "sentinel-diagnostics",
-                                                                "scope": "[parameters('resourceId')]",
+                                                                "scope": "[[parameters('resourceId')]",
                                                                 "properties": {
-                                                                    "workspaceId": "[parameters('workspaceId')]",
+                                                                    "workspaceId": "[[parameters('workspaceId')]",
                                                                     "logs": [
                                                                         { "category": "SQLSecurityAuditEvents", "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
                                                                         { "category": "SQLInsights",            "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },

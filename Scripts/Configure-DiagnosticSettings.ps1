@@ -25,12 +25,12 @@ $workspaceId = "/subscriptions/$SubscriptionId/resourceGroups/$ResourceGroup/pro
 $settingName  = "sentinel-diagnostics"
 
 function Set-SentinelDiagnosticSetting {
-    param([string]$ResourceId, [array]$Logs)
+    param([string]$ResourceId, [array]$Logs, [array]$Metrics = @())
     $body = @{
         properties = @{
             workspaceId = $workspaceId
             logs        = $Logs
-            metrics     = @()
+            metrics     = $Metrics
         }
     } | ConvertTo-Json -Depth 10
     $uri = "https://management.azure.com$ResourceId/providers/microsoft.insights/diagnosticSettings/${settingName}?api-version=2021-05-01-preview"
@@ -82,18 +82,25 @@ foreach ($resourceType in $ResourceTypes) {
         }
 
         "AzureStorageAccount" {
-            Write-Host "Configuring diagnostics for Storage Accounts (blob service)..."
+            Write-Host "Configuring diagnostics for Storage Accounts..."
             $resources = Get-SubscriptionResources -ResourceType "Microsoft.Storage/storageAccounts"
             Write-Host "  Found $($resources.Count) Storage Account(s)"
+            $storageLogs = @(
+                @{ category = "StorageRead";   enabled = $true; retentionPolicy = @{ enabled = $false; days = 0 } },
+                @{ category = "StorageWrite";  enabled = $true; retentionPolicy = @{ enabled = $false; days = 0 } },
+                @{ category = "StorageDelete"; enabled = $true; retentionPolicy = @{ enabled = $false; days = 0 } }
+            )
+            $storageMetrics = @(
+                @{ category = "Transaction"; enabled = $true; retentionPolicy = @{ enabled = $false; days = 0 } }
+            )
             foreach ($r in $resources) {
-                $logs = @(
-                    @{ category = "StorageRead";   enabled = $true; retentionPolicy = @{ enabled = $false; days = 0 } },
-                    @{ category = "StorageWrite";  enabled = $true; retentionPolicy = @{ enabled = $false; days = 0 } },
-                    @{ category = "StorageDelete"; enabled = $true; retentionPolicy = @{ enabled = $false; days = 0 } }
-                )
-                if (Set-SentinelDiagnosticSetting -ResourceId "$($r.id)/blobServices/default" -Logs $logs) {
-                    Write-Host "  Configured blob service: $($r.name)"
+                # Account-level metrics (feeds AzureMetrics table)
+                Set-SentinelDiagnosticSetting -ResourceId $r.id -Logs @() -Metrics $storageMetrics | Out-Null
+                # Sub-service logs (feeds StorageBlobLogs, StorageQueueLogs, StorageTableLogs, StorageFileLogs)
+                foreach ($service in @("blobServices/default", "queueServices/default", "tableServices/default", "fileServices/default")) {
+                    Set-SentinelDiagnosticSetting -ResourceId "$($r.id)/$service" -Logs $storageLogs | Out-Null
                 }
+                Write-Host "  Configured: $($r.name)"
             }
         }
 

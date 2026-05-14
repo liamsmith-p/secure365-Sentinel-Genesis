@@ -34,8 +34,24 @@ $SubscriptionId = $context.Subscription.Id
 $baseUri = "https://management.azure.com/subscriptions/${SubscriptionId}/resourceGroups/${ResourceGroup}/providers/Microsoft.OperationalInsights/workspaces/${Workspace}"
 $alertUri = "$baseUri/providers/Microsoft.SecurityInsights/alertRules/"
 
-$url = $baseUri + "/providers/Microsoft.SecurityInsights/contentProductPackages?api-version=2024-01-01-preview"
-$allSolutions = (Invoke-RestMethod -Method "Get" -Uri $url -Headers $authHeader ).value
+$candidateVersions = @('2024-09-01', '2024-04-01-preview', '2024-03-01', '2024-01-01-preview')
+$allSolutions = $null
+$workingApiVersion = $null
+foreach ($apiVersion in $candidateVersions) {
+    try {
+        $url = $baseUri + "/providers/Microsoft.SecurityInsights/contentProductPackages?api-version=$apiVersion"
+        $allSolutions = (Invoke-RestMethod -Method "Get" -Uri $url -Headers $authHeader).value
+        $workingApiVersion = $apiVersion
+        Write-Host "contentProductPackages: using api-version $apiVersion"
+        break
+    } catch {
+        Write-Host "contentProductPackages: api-version $apiVersion failed ($($_.Exception.Response.StatusCode.value__)) - $($_.ErrorDetails.Message)"
+    }
+}
+if ($null -eq $allSolutions) {
+    Write-Error "Failed to retrieve Content Hub packages with any candidate API version. Aborting."
+    exit 1
+}
 
 foreach ($deploySolution in $Solutions) {
     $singleSolution = $allSolutions | Where-Object { $_.properties.displayName -Contains $deploySolution }
@@ -43,7 +59,7 @@ foreach ($deploySolution in $Solutions) {
         Write-Error "Unable to get find solution with name $deploySolution" 
     }
     else {
-        $solutionURL = $baseUri + "/providers/Microsoft.SecurityInsights/contentProductPackages/$($singleSolution.name)?api-version=2024-01-01-preview"
+        $solutionURL = $baseUri + "/providers/Microsoft.SecurityInsights/contentProductPackages/$($singleSolution.name)?api-version=$workingApiVersion"
         $solution = (Invoke-RestMethod -Method "Get" -Uri $solutionURL -Headers $authHeader )
         Write-Host "Solution name: " $solution.name
         $packagedContent = $solution.properties.packagedContent

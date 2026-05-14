@@ -2,18 +2,22 @@ param(
     [Parameter(Mandatory = $true)][string]$ResourceGroup,
     [Parameter(Mandatory = $true)][string]$Workspace,
     [Parameter(Mandatory = $true)][string]$Region,
-    [Parameter(Mandatory = $false)][string[]]$Solutions,
+    [Parameter(Mandatory = $false)][string[]]$Solutions = @(),
     [Parameter(Mandatory = $false)][string[]]$SeveritiesToInclude = @("Informational", "Low", "Medium", "High")
 )
 
 $context = Get-AzContext
-
 
 if (!$context) {
     Connect-AzAccount
     $context = Get-AzContext
 }
 
+if ($Solutions.Count -eq 0 -and $env:SENTINEL_SOLUTIONS) {
+    $Solutions = $env:SENTINEL_SOLUTIONS -split ',' | ForEach-Object { $_.Trim().Trim('"') } | Where-Object { $_ -ne '' }
+}
+
+Write-Host "Solutions to deploy: $($Solutions -join ', ')"
 
 Write-Host "Connected to Azure with subscription: " $context.Subscription
 $context = Get-AzContext
@@ -21,8 +25,8 @@ $instanceProfile = [Microsoft.Azure.Commands.Common.Authentication.Abstractions.
 $profileClient = New-Object -TypeName Microsoft.Azure.Commands.ResourceManager.Common.RMProfileClient -ArgumentList ($instanceProfile)
 $token = $profileClient.AcquireAccessToken($context.Subscription.TenantId)
 $authHeader = @{
-    'Content-Type'  = 'application/json' 
-    'Authorization' = 'Bearer ' + $token.AccessToken 
+    'Content-Type'  = 'application/json'
+    'Authorization' = 'Bearer ' + $token.AccessToken
 }
 $SubscriptionId = $context.Subscription.Id
 
@@ -30,12 +34,9 @@ $SubscriptionId = $context.Subscription.Id
 $baseUri = "https://management.azure.com/subscriptions/${SubscriptionId}/resourceGroups/${ResourceGroup}/providers/Microsoft.OperationalInsights/workspaces/${Workspace}"
 $alertUri = "$baseUri/providers/Microsoft.SecurityInsights/alertRules/"
 
-# Get a list of all the solutions
 $url = $baseUri + "/providers/Microsoft.SecurityInsights/contentProductPackages?api-version=2024-01-01-preview"
 $allSolutions = (Invoke-RestMethod -Method "Get" -Uri $url -Headers $authHeader ).value
 
-#Deploy each single solution
-#$templateParameter = @{"workspace-location" = $Region; workspace = $Workspace }
 foreach ($deploySolution in $Solutions) {
     $singleSolution = $allSolutions | Where-Object { $_.properties.displayName -Contains $deploySolution }
     if ($null -eq $singleSolution) {

@@ -205,9 +205,9 @@
                                     "value": "Azure SQL Database"
                                 },
                                 {
-                                    "label": "Microsoft Defender Threat Intelligence (NEW)",
-                                    "description": "The Microsoft Defender Threat Intelligence solution ingests threat indicators into the ThreatIntelIndicatorsV2 table, with analytic rules, workbooks, and hunting queries for matching TI data with event data.",
-                                    "value": "Microsoft Defender Threat Intelligence"
+                                    "label": "Threat Intelligence (NEW)",
+                                    "description": "The updated Threat Intelligence solution ingests threat indicators into the ThreatIntelIndicatorsV2 table, with analytic rules, workbooks, and hunting queries for matching TI data with event data.",
+                                    "value": "Threat Intelligence (NEW)"
                                 }
                             ],
                             "required": false

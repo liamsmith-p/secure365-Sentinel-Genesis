@@ -82,7 +82,7 @@ foreach ($deploySolution in $Solutions) {
 
 }
 
-if ($Solutions -contains "Microsoft Defender Threat Intelligence") {
+if ($Solutions -contains "Threat Intelligence (NEW)") {
     Write-Host "Connecting Microsoft Defender Threat Intelligence data connector..."
     $mdtiConnectorUri = "$baseUri/providers/Microsoft.SecurityInsights/dataConnectors/MicrosoftDefenderThreatIntelligence?api-version=2024-01-01-preview"
     $mdtiBody = @{

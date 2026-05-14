@@ -327,11 +327,6 @@
                                     "value": "MicrosoftDefenderForCloud"
                                 },
                                 {
-                                    "label": "Microsoft Defender Threat Intelligence",
-                                    "description": "Connect Microsoft Defender Threat Intelligence to ingest indicators into ThreatIntelIndicatorsV2 for use in analytic rules and hunting queries.",
-                                    "value": "MicrosoftDefenderThreatIntelligence"
-                                },
-                                {
                                     "label": "Microsoft Entra ID Identity Protection (CAUTION)",
                                     "description": "WARNING: Do not select this if your tenant uses Microsoft Defender XDR — Identity Protection is managed by the XDR portal and this will fail with a conflict error. Configure via the Defender portal instead.",
                                     "value": "AzureActiveDirectoryIDP"

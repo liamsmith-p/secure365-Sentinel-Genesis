@@ -205,9 +205,9 @@
                                     "value": "Azure SQL Database"
                                 },
                                 {
-                                    "label": "Threat Intelligence",
-                                    "description": "The Threat Intelligence solution contains data connectors for import of threat indicators into Microsoft Sentinel, analytic rules for matching TI data with event data, workbook, and hunting queries.",
-                                    "value": "Threat Intelligence"
+                                    "label": "Microsoft Defender Threat Intelligence (NEW)",
+                                    "description": "The Microsoft Defender Threat Intelligence solution ingests threat indicators into the ThreatIntelIndicatorsV2 table, with analytic rules, workbooks, and hunting queries for matching TI data with event data.",
+                                    "value": "Microsoft Defender Threat Intelligence"
                                 }
                             ],
                             "required": false
@@ -327,9 +327,9 @@
                                     "value": "MicrosoftDefenderForCloud"
                                 },
                                 {
-                                    "label": "Threat Intelligence",
-                                    "description": "Import threat indicators into Sentinel for use in analytic rules and hunting queries.",
-                                    "value": "ThreatIntelligence"
+                                    "label": "Microsoft Defender Threat Intelligence",
+                                    "description": "Connect Microsoft Defender Threat Intelligence to ingest indicators into ThreatIntelIndicatorsV2 for use in analytic rules and hunting queries.",
+                                    "value": "MicrosoftDefenderThreatIntelligence"
                                 },
                                 {
                                     "label": "Microsoft Entra ID Identity Protection (CAUTION)",

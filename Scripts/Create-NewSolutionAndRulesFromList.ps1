@@ -84,6 +84,7 @@ foreach ($deploySolution in $Solutions) {
 
 if ($Solutions -contains "Threat Intelligence (NEW)") {
     Write-Host "Connecting Microsoft Defender Threat Intelligence data connector..."
+    Start-Sleep -Seconds 30
     $mdtiConnectorUri = "$baseUri/providers/Microsoft.SecurityInsights/dataConnectors/MicrosoftDefenderThreatIntelligence?api-version=2024-01-01-preview"
     $mdtiBody = @{
         kind       = "MicrosoftDefenderThreatIntelligence"
@@ -98,10 +99,17 @@ if ($Solutions -contains "Threat Intelligence (NEW)") {
         }
     } | ConvertTo-Json -Depth 10
     try {
-        Invoke-RestMethod -Uri $mdtiConnectorUri -Method Put -Headers $authHeader -Body $mdtiBody | Out-Null
-        Write-Host "Microsoft Defender Threat Intelligence connector connected."
+        $mdtiResponse = Invoke-RestMethod -Uri $mdtiConnectorUri -Method Put -Headers $authHeader -Body $mdtiBody
+        Write-Host "Microsoft Defender Threat Intelligence connector connected: $($mdtiResponse.name)"
     } catch {
-        Write-Warning "Failed to connect MDTI connector: $_"
+        $errorDetails = $_.Exception.Response
+        if ($errorDetails) {
+            $reader = New-Object System.IO.StreamReader($errorDetails.GetResponseStream())
+            $responseBody = $reader.ReadToEnd()
+            Write-Error "Failed to connect MDTI connector. Status: $($errorDetails.StatusCode). Response: $responseBody"
+        } else {
+            Write-Error "Failed to connect MDTI connector: $_"
+        }
     }
 }
 

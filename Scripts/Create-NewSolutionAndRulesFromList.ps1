@@ -82,6 +82,29 @@ foreach ($deploySolution in $Solutions) {
 
 }
 
+if ($Solutions -contains "Microsoft Defender Threat Intelligence") {
+    Write-Host "Connecting Microsoft Defender Threat Intelligence data connector..."
+    $mdtiConnectorUri = "$baseUri/providers/Microsoft.SecurityInsights/dataConnectors/MicrosoftDefenderThreatIntelligence?api-version=2024-01-01-preview"
+    $mdtiBody = @{
+        kind       = "MicrosoftDefenderThreatIntelligence"
+        properties = @{
+            tenantId  = $context.Subscription.TenantId
+            dataTypes = @{
+                threatIntelligenceIndicators = @{
+                    state          = "enabled"
+                    lookbackPeriod = "P30D"
+                }
+            }
+        }
+    } | ConvertTo-Json -Depth 10
+    try {
+        Invoke-RestMethod -Uri $mdtiConnectorUri -Method Put -Headers $authHeader -Body $mdtiBody | Out-Null
+        Write-Host "Microsoft Defender Threat Intelligence connector connected."
+    } catch {
+        Write-Warning "Failed to connect MDTI connector: $_"
+    }
+}
+
 #####
 #create rules from any rule templates that came from solutions
 #####

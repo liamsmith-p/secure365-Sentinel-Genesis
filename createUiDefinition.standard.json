@@ -402,16 +402,6 @@
                                     "label": "Dynamics 365",
                                     "description": "Ingest Dynamics 365 activity logs into Sentinel.",
                                     "value": "Dynamics365"
-                                },
-                                {
-                                    "label": "Microsoft Power BI",
-                                    "description": "Ingest Power BI audit logs into Sentinel.",
-                                    "value": "MicrosoftPowerBI"
-                                },
-                                {
-                                    "label": "Microsoft Project",
-                                    "description": "Ingest Microsoft Project activity logs into Sentinel.",
-                                    "value": "MicrosoftProject"
                                 }
                             ],
                             "required": false

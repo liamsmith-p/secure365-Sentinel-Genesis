@@ -376,9 +376,7 @@
                             {"value": "Office365"},
                             {"value": "MicrosoftDefenderXDR"},
                             {"value": "MicrosoftDefenderForCloud"},
-                            {"value": "Dynamics365"},
-                            {"value": "MicrosoftPowerBI"},
-                            {"value": "MicrosoftProject"}
+                            {"value": "Dynamics365"}
                         ],
                         "toolTip": "Select the data connectors that you would like to enable",
                         "constraints": {
@@ -422,16 +420,6 @@
                                     "label": "Dynamics 365",
                                     "description": "Ingest Dynamics 365 activity logs into Sentinel.",
                                     "value": "Dynamics365"
-                                },
-                                {
-                                    "label": "Microsoft Power BI",
-                                    "description": "Ingest Power BI audit logs into Sentinel.",
-                                    "value": "MicrosoftPowerBI"
-                                },
-                                {
-                                    "label": "Microsoft Project",
-                                    "description": "Ingest Microsoft Project activity logs into Sentinel.",
-                                    "value": "MicrosoftProject"
                                 }
                             ],
                             "required": false

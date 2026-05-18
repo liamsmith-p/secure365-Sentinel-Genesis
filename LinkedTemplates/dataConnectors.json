@@ -39,7 +39,10 @@
         "tiName": "[concat('ti', uniqueString(resourceGroup().id))]",
         "azureActivityName": "[concat('azureactivity', uniqueString(resourceGroup().id))]",
         "office365Name": "[concat('office365', uniqueString(resourceGroup().id))]",
-        "xdrName": "[concat('xdr', uniqueString(resourceGroup().id))]"
+        "xdrName":        "[concat('xdr', uniqueString(resourceGroup().id))]",
+        "dynamics365Name": "[concat('dynamics365', uniqueString(resourceGroup().id))]",
+        "powerBIName":     "[concat('powerbi', uniqueString(resourceGroup().id))]",
+        "projectName":     "[concat('project', uniqueString(resourceGroup().id))]"
     },
     "resources": [
         {
@@ -200,6 +203,54 @@
                         "state": "enabled"
                     },
                     "teams": {
+                        "state": "enabled"
+                    }
+                }
+            }
+        },
+        {
+            "condition": "[contains(parameters('enableDataConnectors'), 'Dynamics365')]",
+            "type": "Microsoft.OperationalInsights/workspaces/providers/dataConnectors",
+            "apiVersion": "2022-12-01-preview",
+            "location": "[parameters('location')]",
+            "name": "[concat(parameters('workspaceName'),'/Microsoft.SecurityInsights/',variables('dynamics365Name'))]",
+            "kind": "Dynamics365",
+            "properties": {
+                "tenantId": "[variables('tenantId')]",
+                "dataTypes": {
+                    "dynamics365CdsActivities": {
+                        "state": "enabled"
+                    }
+                }
+            }
+        },
+        {
+            "condition": "[contains(parameters('enableDataConnectors'), 'MicrosoftPowerBI')]",
+            "type": "Microsoft.OperationalInsights/workspaces/providers/dataConnectors",
+            "apiVersion": "2022-12-01-preview",
+            "location": "[parameters('location')]",
+            "name": "[concat(parameters('workspaceName'),'/Microsoft.SecurityInsights/',variables('powerBIName'))]",
+            "kind": "MicrosoftPowerBI",
+            "properties": {
+                "tenantId": "[variables('tenantId')]",
+                "dataTypes": {
+                    "logs": {
+                        "state": "enabled"
+                    }
+                }
+            }
+        },
+        {
+            "condition": "[contains(parameters('enableDataConnectors'), 'MicrosoftProject')]",
+            "type": "Microsoft.OperationalInsights/workspaces/providers/dataConnectors",
+            "apiVersion": "2022-12-01-preview",
+            "location": "[parameters('location')]",
+            "name": "[concat(parameters('workspaceName'),'/Microsoft.SecurityInsights/',variables('projectName'))]",
+            "kind": "MicrosoftProject",
+            "properties": {
+                "tenantId": "[variables('tenantId')]",
+                "dataTypes": {
+                    "logs": {
                         "state": "enabled"
                     }
                 }

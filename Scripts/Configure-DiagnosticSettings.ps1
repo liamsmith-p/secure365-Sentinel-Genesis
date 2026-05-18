@@ -124,6 +124,39 @@ foreach ($resourceType in $ResourceTypes) {
                 }
             }
         }
+
+        "AzureFirewall" {
+            Write-Host "Configuring diagnostics for Azure Firewalls..."
+            $resources = Get-SubscriptionResources -ResourceType "Microsoft.Network/azureFirewalls"
+            Write-Host "  Found $($resources.Count) Azure Firewall(s)"
+            foreach ($r in $resources) {
+                $logs = @(
+                    @{ category = "AzureFirewallApplicationRule"; enabled = $true; retentionPolicy = @{ enabled = $false; days = 0 } },
+                    @{ category = "AzureFirewallNetworkRule";     enabled = $true; retentionPolicy = @{ enabled = $false; days = 0 } },
+                    @{ category = "AzureFirewallDnsProxy";        enabled = $true; retentionPolicy = @{ enabled = $false; days = 0 } },
+                    @{ category = "AzureFirewallThreatIntel";     enabled = $true; retentionPolicy = @{ enabled = $false; days = 0 } }
+                )
+                if (Set-SentinelDiagnosticSetting -ResourceId $r.id -Logs $logs) {
+                    Write-Host "  Configured: $($r.name)"
+                }
+            }
+        }
+
+        "AzureApplicationGateway" {
+            Write-Host "Configuring diagnostics for Azure Application Gateways (WAF)..."
+            $resources = Get-SubscriptionResources -ResourceType "Microsoft.Network/applicationGateways"
+            Write-Host "  Found $($resources.Count) Application Gateway(s)"
+            foreach ($r in $resources) {
+                $logs = @(
+                    @{ category = "ApplicationGatewayAccessLog";      enabled = $true; retentionPolicy = @{ enabled = $false; days = 0 } },
+                    @{ category = "ApplicationGatewayPerformanceLog"; enabled = $true; retentionPolicy = @{ enabled = $false; days = 0 } },
+                    @{ category = "ApplicationGatewayFirewallLog";    enabled = $true; retentionPolicy = @{ enabled = $false; days = 0 } }
+                )
+                if (Set-SentinelDiagnosticSetting -ResourceId $r.id -Logs $logs) {
+                    Write-Host "  Configured: $($r.name)"
+                }
+            }
+        }
     }
 }
 

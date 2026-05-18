@@ -104,7 +104,7 @@ if ($Solutions -contains "Threat Intelligence (NEW)") {
     Start-Sleep -Seconds 30
 
     $connectorGuid = [System.Guid]::NewGuid().ToString()
-    $mdtiUri = "$baseUri/providers/Microsoft.SecurityInsights/dataConnectors/$connectorGuid?api-version=2021-10-01-preview"
+    $mdtiUri = "$baseUri/providers/Microsoft.SecurityInsights/dataConnectors/${connectorGuid}?api-version=2021-10-01-preview"
     $mdtiBody = @{
         kind       = "MicrosoftThreatIntelligence"
         properties = @{

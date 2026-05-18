@@ -49,8 +49,8 @@ foreach ($apiVersion in $candidateVersions) {
     }
 }
 if ($null -eq $allSolutions) {
-    Write-Error "Failed to retrieve Content Hub packages with any candidate API version. Aborting."
-    exit 1
+    Write-Warning "Failed to retrieve Content Hub packages with any candidate API version. Skipping solution installation."
+    $allSolutions = @()
 }
 
 foreach ($deploySolution in $Solutions) {
@@ -102,28 +102,49 @@ foreach ($deploySolution in $Solutions) {
 if ($Solutions -contains "Threat Intelligence (NEW)") {
     Write-Host "Connecting Microsoft Defender Threat Intelligence data connector..."
     Start-Sleep -Seconds 30
-    $mdtiConnectorUri = "$baseUri/providers/Microsoft.SecurityInsights/dataConnectors/MicrosoftDefenderThreatIntelligence?api-version=2024-01-01-preview"
-    $mdtiBody = @{
-        kind       = "MicrosoftDefenderThreatIntelligence"
-        properties = @{
-            tenantId  = $context.Subscription.TenantId
-            dataTypes = @{
-                threatIntelligenceIndicators = @{
-                    state          = "enabled"
-                    lookbackPeriod = "P30D"
-                }
+
+    $connectorApiVersions = @('2024-09-01', '2024-04-01-preview', '2024-03-01', '2024-01-01-preview')
+    $connected = $false
+
+    foreach ($connectorApiVersion in $connectorApiVersions) {
+        try {
+            $listUri = "$baseUri/providers/Microsoft.SecurityInsights/dataConnectors?api-version=$connectorApiVersion"
+            $existingConnectors = (Invoke-RestMethod -Uri $listUri -Method Get -Headers $authHeader).value
+            $mdtiConnector = $existingConnectors | Where-Object { $_.kind -eq "MicrosoftDefenderThreatIntelligence" }
+
+            if ($mdtiConnector) {
+                Write-Host "Found existing MDTI connector '$($mdtiConnector.name)' with state: $($mdtiConnector.properties.dataTypes.threatIntelligenceIndicators.state)"
+                $mdtiConnector.properties.dataTypes.threatIntelligenceIndicators.state = "enabled"
+                $updateUri = "$baseUri/providers/Microsoft.SecurityInsights/dataConnectors/$($mdtiConnector.name)?api-version=$connectorApiVersion"
+                Invoke-RestMethod -Uri $updateUri -Method Put -Headers $authHeader -Body ($mdtiConnector | ConvertTo-Json -Depth 20) | Out-Null
+                Write-Host "MDTI connector enabled successfully."
+            } else {
+                Write-Host "No existing MDTI connector found, creating..."
+                $mdtiBody = @{
+                    kind       = "MicrosoftDefenderThreatIntelligence"
+                    properties = @{
+                        tenantId  = $context.Subscription.TenantId
+                        dataTypes = @{
+                            threatIntelligenceIndicators = @{
+                                state          = "enabled"
+                                lookbackPeriod = "P30D"
+                            }
+                        }
+                    }
+                } | ConvertTo-Json -Depth 10
+                $createUri = "$baseUri/providers/Microsoft.SecurityInsights/dataConnectors/MicrosoftDefenderThreatIntelligence?api-version=$connectorApiVersion"
+                Invoke-RestMethod -Uri $createUri -Method Put -Headers $authHeader -Body $mdtiBody | Out-Null
+                Write-Host "MDTI connector created and enabled."
             }
+            $connected = $true
+            break
+        } catch {
+            Write-Host "MDTI connect failed with api-version $connectorApiVersion. Status: $($_.Exception.Response.StatusCode.value__). Response: $($_.ErrorDetails.Message)"
         }
-    } | ConvertTo-Json -Depth 10
-    Write-Host "MDTI connector request URI: $mdtiConnectorUri"
-    Write-Host "MDTI connector request body: $mdtiBody"
-    try {
-        $mdtiResponse = Invoke-RestMethod -Uri $mdtiConnectorUri -Method Put -Headers $authHeader -Body $mdtiBody
-        Write-Host "Microsoft Defender Threat Intelligence connector connected: $($mdtiResponse.name)"
-    } catch {
-        $statusCode = $_.Exception.Response.StatusCode.value__
-        $responseBody = $_.ErrorDetails.Message
-        Write-Error "Failed to connect MDTI connector. Status: $statusCode. Response: $responseBody"
+    }
+
+    if (-not $connected) {
+        Write-Error "Failed to connect MDTI connector with any candidate API version."
     }
 }
 

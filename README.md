@@ -1,38 +1,73 @@
 # secure365-Sentinel-Genesis
 
-Repository for the Microsoft Sentinel solution provided by Softwerx.
+Automated Microsoft Sentinel deployment provided by Softwerx. Deploys a fully configured Sentinel workspace including Content Hub solutions, data connectors, analytics rules, and diagnostic settings — all via a single ARM template.
 
 ![Sentinel Solution](https://github.com/user-attachments/assets/647bda8b-e007-49a7-a2f7-da93e5570126)
 
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fliamsmith-p%2Fsecure365-Sentinel-Genesis%2Fmain%2Fazuredeploy.json/createUIDefinitionUri/https%3A%2F%2Fraw.githubusercontent.com%2Fliamsmith-p%2Fsecure365-Sentinel-Genesis%2Fmain%2FcreateUiDefinition.json)
+---
+
+## Deployment options
+
+Three pre-configured tiers are available alongside a fully custom option. Click the button for the tier that best fits your customer.
+
+| Tier | What's included |
+|---|---|
+| **Essential** | Entra ID, Azure Activity, Microsoft 365 — core identity and productivity monitoring |
+| **Standard** | Essential + Defender XDR, Defender for Cloud, Threat Intelligence, UEBA, Key Vault and NSG diagnostics |
+| **Enterprise** | All solutions, all automatable connectors, all diagnostic resource types, UEBA, High/Medium/Low severity rules |
+| **Custom** | Full menu — select exactly what you want |
+
+[![Deploy Essential](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fliamsmith-p%2Fsecure365-Sentinel-Genesis%2Fmain%2Fazuredeploy.json/createUIDefinitionUri/https%3A%2F%2Fraw.githubusercontent.com%2Fliamsmith-p%2Fsecure365-Sentinel-Genesis%2Fmain%2FcreateUiDefinition.essential.json)
+
+[![Deploy Standard](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fliamsmith-p%2Fsecure365-Sentinel-Genesis%2Fmain%2Fazuredeploy.json/createUIDefinitionUri/https%3A%2F%2Fraw.githubusercontent.com%2Fliamsmith-p%2Fsecure365-Sentinel-Genesis%2Fmain%2FcreateUiDefinition.standard.json)
+
+[![Deploy Enterprise](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fliamsmith-p%2Fsecure365-Sentinel-Genesis%2Fmain%2Fazuredeploy.json/createUIDefinitionUri/https%3A%2F%2Fraw.githubusercontent.com%2Fliamsmith-p%2Fsecure365-Sentinel-Genesis%2Fmain%2FcreateUiDefinition.enterprise.json)
+
+[![Deploy Custom](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fliamsmith-p%2Fsecure365-Sentinel-Genesis%2Fmain%2Fazuredeploy.json/createUIDefinitionUri/https%3A%2F%2Fraw.githubusercontent.com%2Fliamsmith-p%2Fsecure365-Sentinel-Genesis%2Fmain%2FcreateUiDefinition.json)
 
 ---
 
 ## Prerequisites
 
-Before clicking Deploy to Azure, ensure the following are in place.
+Complete these steps before deploying or the deployment will fail.
 
-### Required permissions
+### 1. Required permissions
 
 | Permission | Scope | Required for |
 |---|---|---|
-| **Owner** | Azure subscription | Creating all resources, subscription-level diagnostic settings, and role assignments used by deployment scripts |
-| **Security Administrator** | Entra ID tenant | Configuring M365, Defender XDR, and Threat Intelligence data connectors; enabling UEBA |
+| **Owner** | Azure subscription | Creating all resources, subscription-level diagnostic settings, Azure Policy assignments, and role assignments used by deployment scripts |
+| **Global Administrator** or **Security Administrator** | Entra ID tenant | Configuring Entra ID diagnostic settings, data connectors, enabling UEBA |
 
-> Contributor alone is not sufficient — the deployment creates role assignments which require Owner or User Access Administrator.
+> Contributor alone is not sufficient — the deployment creates role assignments which require Owner or User Access Administrator. Security Administrator is sufficient for most connector operations, but Global Administrator may be required on some tenants for the Entra ID tenant-scoped diagnostic settings resource.
 
-### New tenant checklist
+### 2. Register required resource providers
 
-If deploying to a **brand new tenant**, complete these steps before deploying or certain features will fail:
+The deployment uses Azure Container Instances and Storage for deployment scripts. These resource providers must be registered in the customer's subscription before deploying. Run this once in Azure Cloud Shell (PowerShell):
+
+```powershell
+Register-AzResourceProvider -ProviderNamespace Microsoft.ContainerInstance
+Register-AzResourceProvider -ProviderNamespace Microsoft.Storage
+```
+
+Wait for both to show `RegistrationState: Registered` before proceeding:
+
+```powershell
+Get-AzResourceProvider -ProviderNamespace Microsoft.ContainerInstance | Select-Object RegistrationState
+Get-AzResourceProvider -ProviderNamespace Microsoft.Storage | Select-Object RegistrationState
+```
+
+### 3. New tenant checklist
+
+If deploying to a **brand new tenant**, complete these before deploying:
 
 1. **Provision Microsoft Defender XDR** — sign in to [security.microsoft.com](https://security.microsoft.com) as a Global Administrator and let the portal fully load. This initialises the XDR workspace. Without this, enabling UEBA will fail with a misleading permissions error even if your permissions are correct.
-2. **Verify your Entra ID roles** — confirm your account has Security Administrator assigned in [Entra ID](https://entra.microsoft.com) > Roles and administrators, not just Azure RBAC.
+2. **Verify your Entra ID roles** — confirm your account has Security Administrator or Global Administrator assigned in [Entra ID](https://entra.microsoft.com) > Roles and administrators, not just Azure RBAC.
 
 ---
 
 ## Deployment walkthrough
 
-Click **Deploy to Azure** above and work through each tab.
+Click the relevant **Deploy to Azure** button above and work through each tab.
 
 ### Basics
 
@@ -49,111 +84,176 @@ Click **Deploy to Azure** above and work through each tab.
 
 ### Settings
 
-**Enable UEBA** — tick this to enable User Entity Behavior Analytics.
+**Enable UEBA** — enables User Entity Behavior Analytics.
 
-- Only tick this if you have already provisioned Microsoft Defender XDR (see new tenant checklist above)
+- Only enable this if Microsoft Defender XDR has already been provisioned (see new tenant checklist)
 - Under **Identity Providers**, select **Microsoft Entra ID** for cloud identity sync
-- Do **not** select **Active Directory** unless Microsoft Defender for Identity (MDI) is already deployed and onboarded to your tenant — selecting it without MDI will fail with a precondition error
+- Do **not** select **Active Directory** unless Microsoft Defender for Identity (MDI) is already deployed and fully onboarded — selecting it without MDI will fail with a precondition error
 
-**Enable Sentinel health diagnostics** — optional, enables diagnostic logging for analytics rules, data connectors, and automation rules.
+**Enable Sentinel health diagnostics** — enables diagnostic logging for analytics rules, data connectors, and automation rules within Sentinel itself.
 
 ---
 
 ### Content Hub Solutions
 
-Select the Microsoft solutions and Essentials packs to install. Each solution deploys analytics rule templates, workbooks, hunting queries, and parsers relevant to that product.
+Each solution deploys analytics rule templates, workbooks, hunting queries, and parsers for that product or service. Installing a solution does not automatically connect data — data sources must be connected separately in the Data Connectors tab.
 
-**Microsoft solutions available:**
+#### Microsoft solutions
 
 | Solution | What it covers |
 |---|---|
-| Microsoft Entra ID | Sign-in and audit log analytics |
-| Azure Activity | Subscription-level administrative and security events |
+| Microsoft Entra ID | Sign-in logs, audit logs, identity risk events |
+| Azure Activity | Subscription-level administrative, security, and service health events |
 | Microsoft Defender for Cloud | Cloud workload protection alerts |
 | Microsoft Defender XDR | Unified XDR incident and alert analytics |
-| Microsoft Defender for Cloud Apps | Cloud app security and shadow IT |
+| Microsoft Defender for Cloud Apps | Cloud app security, shadow IT, anomalous behaviour |
 | Microsoft 365 | Exchange, SharePoint, and Teams activity |
-| Azure Key Vault | Key Vault audit and access analytics |
-| Azure Network Security Groups | NSG event and rule counter analytics |
-| Azure Storage | Storage account read/write/delete analytics |
-| Azure SQL Database | SQL audit, error, and security analytics |
-| Threat Intelligence | TI indicator matching rules and workbooks |
+| Azure Key Vault | Key Vault audit, access, and secret operation analytics |
+| Azure Network Security Groups | NSG flow event and rule counter analytics |
+| Azure Storage | Storage account read, write, and delete analytics |
+| Azure SQL Database | SQL audit, error, timeout, and security analytics |
+| Threat Intelligence (NEW) | TI indicator ingestion via MDTI free tier; matching rules and workbooks using the `ThreatIntelIndicatorsV2` table |
+| Azure Kubernetes Service | AKS audit log and diagnostic analytics for Kubernetes workloads |
+| Azure Firewall | Application rule, network rule, DNS proxy, and threat intelligence log analytics |
+| Azure Web Application Firewall | WAF event analytics across Application Gateway, Front Door, and CDN |
+| Dynamics 365 | Dynamics 365 activity, audit, and configuration change analytics |
+| Microsoft Power BI | Power BI audit activity analytics (dashboard views, dataset access, sharing) |
+| Microsoft Project | Project activity log and access analytics |
+| Windows Security Events | Analytics rules and workbooks for Windows Security Event data collected via Azure Monitor Agent. **Requires separate agent deployment and Data Collection Rule configuration on target machines — not automated by this template.** |
+| Common Event Format (CEF) | Parsers, rules, and workbooks for CEF-formatted syslog data from firewalls, IDS/IPS, and security appliances. **Requires a CEF forwarder or AMA syslog configuration on a Linux collector — not automated by this template.** |
 
-**Essentials packs** provide cross-product detection content and are recommended for all deployments.
+#### Essentials packs
 
-> Installing a solution only deploys the analytics templates and workbooks — it does not automatically connect data. Data connectors must be configured separately in the Data Connectors tab.
+Cross-product detection content recommended for all deployments regardless of which solutions are selected.
+
+| Pack | What it covers |
+|---|---|
+| Attacker Tools Threat Protection Essentials | Detection of attacker tooling commonly seen across campaigns |
+| Cloud Identity Threat Protection Essentials | Suspicious sign-ins, privilege grants, MFA disable, and other cloud identity attacks |
+| Cloud Service Threat Protection Essentials | Attacks against cloud services including Key Vault, Storage, and compute |
+| Endpoint Threat Protection Essentials | Windows endpoint threat detection and investigation content |
+| Network Session Essentials | Cross-source network correlation using ASIM across 15+ data sources |
+| Network Threat Protection Essentials | Suspicious network behaviour detection across ingested data sources |
+| SOC Handbook | SOC analyst resources for understanding point-in-time security posture |
+| UEBA Essentials | UEBA table-based hunting queries for targeted threat scenarios |
 
 ---
 
 ### Data Connectors
 
-Configures which data sources are connected to the Sentinel workspace.
+Configures which data sources send logs to the Sentinel workspace.
 
 #### Sentinel API connectors
 
-These are configured automatically by the deployment:
+Configured automatically during deployment.
 
 | Connector | Notes |
 |---|---|
-| **Microsoft Entra ID** | Configures tenant-level diagnostic settings to forward sign-in, audit, service principal, managed identity, provisioning, and identity risk logs. Uses `scope: "/"` on the resource so ARM deploys it at tenant scope using your credentials. Requires Global Administrator or Security Administrator. |
-| **Azure Activity** | Configures a subscription-level diagnostic setting to forward all activity log categories. Requires Owner on subscription. |
+| **Microsoft Entra ID** | Configures tenant-level diagnostic settings to forward sign-in, audit, non-interactive, service principal, managed identity, provisioning, ADFS, and identity risk logs. Requires Global Administrator or Security Administrator. |
+| **Azure Activity** | Configures a subscription-level diagnostic setting to forward all activity log categories (Administrative, Security, ServiceHealth, Alert, Recommendation, Policy, Autoscale, ResourceHealth). Requires Owner on subscription. |
 | **Microsoft Defender XDR** | Enables incident and alert sync between XDR and Sentinel. Requires Security Administrator. |
-| **Microsoft 365** | Connects Exchange Online, SharePoint, and Teams activity logs. Requires Security Administrator. |
-| **Microsoft Defender for Cloud** | Ingests MDfC security alerts. Requires Security Reader on subscription. |
-| **Threat Intelligence** | Imports threat indicators for use in analytics rules. |
+| **Microsoft 365** | Connects Exchange Online, SharePoint Online, and Microsoft Teams audit logs. Requires Security Administrator. |
+| **Microsoft Defender for Cloud** | Ingests Defender for Cloud security alerts into Sentinel. Requires Security Reader on subscription. |
+| **Dynamics 365** | Ingests Dynamics 365 Common Data Service activity logs. Requires Security Administrator. |
 | **Microsoft Entra ID Identity Protection** ⚠️ | Do **not** select if your tenant uses Microsoft Defender XDR — Identity Protection is managed by the XDR portal and enabling it here will cause a conflict error. Configure via the Defender portal instead. |
 | **Microsoft Defender for Cloud Apps** ⚠️ | Do **not** select if your tenant manages Defender for Cloud Apps through the Microsoft Defender XDR portal — it will fail with a conflict error. Configure via the Defender portal instead. |
 
+> **Power BI and Project:** These services do not have standalone Sentinel connector kinds. Their audit data flows through the Microsoft 365 audit logs (`OfficeActivity` table) when the Microsoft 365 connector is enabled. Select the Microsoft Power BI and Microsoft Project solutions to install the associated analytics rules and workbooks.
+
+> **Windows Security Events via AMA and CEF:** These are agent-based connectors and cannot be fully automated via ARM deployment. Install the relevant solutions to get the analytics content, then configure Azure Monitor Agent, Data Collection Rules, and any required log forwarders manually post-deployment.
+
 #### Azure Diagnostics (resource-level)
 
-These configure diagnostic settings on existing resources in your subscription, forwarding logs to the Sentinel workspace. The deployment script scans the entire subscription at deploy time and configures any matching resources it finds.
+Configures diagnostic settings on existing resources in the subscription at deploy time, forwarding logs to the Sentinel workspace. A deployment script scans the entire subscription and configures any matching resources it finds.
 
-| Option | Log categories enabled |
-|---|---|
-| Azure Key Vault | AuditEvent |
-| Azure Network Security Groups | NetworkSecurityGroupEvent, NetworkSecurityGroupRuleCounter |
-| Azure Storage Accounts | StorageRead, StorageWrite, StorageDelete (blob service) |
-| Azure SQL Databases | SQLSecurityAuditEvents, SQLInsights, Errors, Timeouts, Blocks, Deadlocks |
+| Option | Resource type | Log categories |
+|---|---|---|
+| Azure Key Vault | `Microsoft.KeyVault/vaults` | AuditEvent |
+| Azure Network Security Groups | `Microsoft.Network/networkSecurityGroups` | NetworkSecurityGroupEvent, NetworkSecurityGroupRuleCounter |
+| Azure Storage Accounts | `Microsoft.Storage/storageAccounts` | StorageRead, StorageWrite, StorageDelete (blob, queue, table, file); Transaction metrics |
+| Azure SQL Databases | `Microsoft.Sql/servers/databases` | SQLSecurityAuditEvents, SQLInsights, Errors, Timeouts, Blocks, Deadlocks |
+| Azure Firewall | `Microsoft.Network/azureFirewalls` | AzureFirewallApplicationRule, AzureFirewallNetworkRule, AzureFirewallDnsProxy, AzureFirewallThreatIntel |
+| Azure Application Gateway (WAF) | `Microsoft.Network/applicationGateways` | ApplicationGatewayAccessLog, ApplicationGatewayPerformanceLog, ApplicationGatewayFirewallLog |
 
-> These settings use the name `sentinel-diagnostics`. Any existing diagnostic settings with a different name are untouched. Resources created after deployment will need diagnostics configured manually or via Azure Policy.
+> Diagnostic settings are created with the name `sentinel-diagnostics`. Existing settings with a different name are not modified. Resources created after deployment are not automatically configured unless **Enable Azure Policy for ongoing enforcement** is also selected.
+
+**Enable Azure Policy for ongoing enforcement** — when ticked alongside any diagnostic resource type, creates a `deployIfNotExists` Azure Policy assignment at subscription scope for each selected type. New resources matching that type are automatically configured with diagnostic settings. Also triggers a remediation task to catch any existing non-compliant resources. Requires Owner on subscription.
 
 ---
 
 ### Analytics Rules
 
-**Enable Scheduled alert rules** — tick this to automatically create active analytics rules from the templates included in your selected Content Hub solutions.
+**Enable Scheduled alert rules** — automatically creates active analytics rules from the templates included in your selected Content Hub solutions.
 
-- Rules are filtered to the severity levels you select — **High** and **Medium** are selected by default
-- Rules are only created for solutions you selected in the Content Hub tab
-- Rules will not generate alerts at runtime unless the relevant data connector is also connected and sending data
+- Rules are only created for solutions selected in the Content Hub tab
+- Rules are filtered to the severity levels you select — High and Medium are selected by default in most tiers; Enterprise also enables Low
+- The deployment checks for existing rules before creating new ones — re-running the deployment will not duplicate rules
+- Rules will not generate alerts unless the relevant data source is connected and sending data
+
+---
+
+## What is and isn't automated
+
+| Capability | Automated |
+|---|---|
+| Workspace and Sentinel creation | ✅ |
+| Content Hub solution installation | ✅ |
+| Analytics rule creation from templates | ✅ |
+| Microsoft Entra ID diagnostic settings | ✅ |
+| Azure Activity diagnostic settings | ✅ |
+| Defender XDR connector (basic) | ✅ |
+| Microsoft 365 connector | ✅ |
+| Defender for Cloud connector | ✅ |
+| Dynamics 365 connector | ✅ |
+| Threat Intelligence (MDTI free tier) connector | ✅ Auto-connected after solution install |
+| UEBA configuration | ✅ |
+| Resource-level diagnostic settings (KV, NSG, Storage, SQL, Firewall, WAF) | ✅ |
+| Azure Policy for ongoing diagnostics enforcement | ✅ |
+| Defender XDR unified workspace connection | ❌ Manual — must be done in the Defender portal |
+| Windows Security Events via AMA | ❌ Manual — requires agent and DCR configuration |
+| CEF / Syslog via AMA | ❌ Manual — requires forwarder and DCR configuration |
+| Entra ID IDP / Defender for Cloud Apps (if XDR-managed) | ❌ Not supported — configure via Defender portal |
+| Azure Firewall / WAF Solution data connection (via ARM connectors) | ❌ Data flows via Diagnostics tab, not a Sentinel connector |
 
 ---
 
 ## Post-deployment steps
 
-After the deployment completes, complete these manual steps:
+After the deployment completes:
 
-1. **Configure Microsoft Defender XDR in the Defener portal.** under Settings > Microsoft Sentinel > Select new workspace and connect. This will automatically enable all Data Connectors in the XDR solution.
+1. **Connect Defender XDR unified workspace** — in the [Microsoft Defender portal](https://security.microsoft.com), go to **Settings > Microsoft Sentinel**, select the newly created workspace, and click **Connect**. This enables the full XDR-Sentinel integration including the advanced hunting experience. This step cannot be automated.
+
+2. **Verify data connector status** — in the Sentinel workspace, go to **Configuration > Data connectors** and confirm the connectors you selected show as Connected.
+
+3. **Review analytics rules** — go to **Configuration > Analytics** and confirm rules are in Active state. Rules that reference data sources not yet connected will show a warning — this is expected until the data source is live.
+
+4. **Configure agent-based connectors if selected** — if you installed the Windows Security Events or CEF solutions, deploy Azure Monitor Agent and configure the relevant Data Collection Rules on your target machines or log forwarders.
 
 ---
 
 ## Troubleshooting
 
 **"Changes to connector are disabled" / conflict error**
-Affects: Microsoft Entra ID Identity Protection, Microsoft Defender for Cloud Apps, Microsoft Defender XDR
-Cause: These connectors are managed by the Microsoft Defender XDR portal when XDR is active. Do not select them in the Data Connectors tab.
+Affects: Microsoft Entra ID Identity Protection, Microsoft Defender for Cloud Apps
+Cause: These connectors are managed by the Microsoft Defender XDR portal when XDR is active. Do not select them in the Data Connectors tab — configure them via the Defender portal instead.
 
-**"Polygon precondition failed" on EntityAnalytics**
-Cause: The Active Directory identity provider was selected for UEBA without Microsoft Defender for Identity deployed. Re-deploy with only Microsoft Entra ID selected as the identity provider.
+**"Polygon precondition failed" on EntityAnalytics / UEBA**
+Cause: The Active Directory identity provider was selected for UEBA without Microsoft Defender for Identity deployed. Re-deploy with only Microsoft Entra ID selected, or deselect UEBA entirely if MDI is not in scope.
 
-**UEBA fails with permissions error on new tenant**
-Cause: Microsoft Defender XDR has not been provisioned yet. Visit [security.microsoft.com](https://security.microsoft.com), let the portal fully load, then re-deploy.
+**UEBA fails with permissions error on a new tenant**
+Cause: Microsoft Defender XDR has not been provisioned yet. Visit [security.microsoft.com](https://security.microsoft.com) as a Global Administrator, let the portal fully load, then re-deploy.
+
+**Deployment fails with "ResourceProviderNotRegistered" for Microsoft.ContainerInstance or Microsoft.Storage**
+Cause: These resource providers are not registered in the subscription. Run the registration commands in the prerequisites section above before deploying.
 
 **No analytics rules created after deployment**
-Cause: The "Enable Scheduled alert rules" checkbox was not ticked, or no severity levels were selected. Re-deploy with these options set.
+Cause: Either the Enable Scheduled alert rules checkbox was not ticked, no severity levels were selected, or no Content Hub solutions were selected. Re-deploy with these options configured.
 
-**Deployment fails at diagnostic settings script**
-Cause: The managed identity did not receive its subscription Contributor role in time. The template includes a 2-minute sleep to handle this, but on slow tenants it can occasionally still fail. Re-running the deployment resolves it.
+**Threat Intelligence connector shows as not connected**
+Cause: The MDTI free connector is auto-connected by the deployment script after the solution installs, but it requires a short wait. If it still shows as disconnected after 10 minutes, check the `deployRules` deployment script logs in the Azure portal under the resource group > Deployments > deployRules > Logs.
 
-**Deployment times out at exactly 1200 seconds ("Action sequencer job exceeded max allowed time")**
-Cause: The deployment scripts (solution install, rule creation, diagnostic settings) each run in separate Azure Container Instance containers, and each container takes 30–60 seconds to start. On a large fresh deployment, the cumulative time across all containers can approach or exceed the 1200-second ARM limit. Re-deploying should be faster on subsequent runs as existing rules are skipped.
+**Diagnostic settings not appearing on existing resources**
+Cause: The deployment script may have run before the managed identity received its Contributor role assignment. The template includes a sleep period to handle this, but on slow tenants it can still occasionally fail. Re-running the deployment will retry the diagnostic settings script.
+
+**Deployment times out at approximately 1200 seconds ("Action sequencer job exceeded max allowed time")**
+Cause: Each deployment script runs in a separate Azure Container Instance which takes 30–60 seconds to start. On a large first-time deployment, cumulative startup time across all containers can approach the ARM 1200-second limit. Re-deploying is faster on subsequent runs as existing rules and settings are detected and skipped.

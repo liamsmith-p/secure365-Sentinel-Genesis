@@ -1,6 +1,6 @@
 # secure365-Sentinel-Genesis
 
-Automated Microsoft Sentinel deployment provided by Softwerx. Deploys a fully configured Sentinel workspace including Content Hub solutions, data connectors, analytics rules, and diagnostic settings — all via a single ARM template.
+Automated Microsoft Sentinel deployment provided by Softwerx. Deploys a fully configured Sentinel workspace including Content Hub solutions, data connectors, analytics rules, and diagnostic settings, all via a single ARM template.
 
 ![Sentinel Solution](https://github.com/user-attachments/assets/647bda8b-e007-49a7-a2f7-da93e5570126)
 
@@ -23,7 +23,7 @@ Complete these steps before deploying or the deployment will fail.
 
 ### 2. Register required resource providers
 
-The deployment uses Azure Container Instances and Storage for deployment scripts. These resource providers must be registered in the customer's subscription before deploying. Run this once in Azure Cloud Shell (PowerShell):
+The deployment uses Azure Container Instances and Storage for deployment scripts. Most of these resource providers will already be registered in the customer's subscription before deploying. In the scenario they are not, either run this once in Azure Cloud Shell (PowerShell):
 
 ```powershell
 Register-AzResourceProvider -ProviderNamespace Microsoft.ContainerInstance
@@ -36,6 +36,9 @@ Wait for both to show `RegistrationState: Registered` before proceeding:
 Get-AzResourceProvider -ProviderNamespace Microsoft.ContainerInstance | Select-Object RegistrationState
 Get-AzResourceProvider -ProviderNamespace Microsoft.Storage | Select-Object RegistrationState
 ```
+**OR**
+
+In the customer's tenant, navigate to Subscriptions > Settings > Resource providers and search for Microsoft.ContainerInstance and Microsoft.Storage. Click the '...' and register the resource providers.
 
 ### 3. New tenant checklist
 

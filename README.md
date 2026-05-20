@@ -4,26 +4,7 @@ Automated Microsoft Sentinel deployment provided by Softwerx. Deploys a fully co
 
 ![Sentinel Solution](https://github.com/user-attachments/assets/647bda8b-e007-49a7-a2f7-da93e5570126)
 
----
-
-## Deployment options
-
-Three pre-configured tiers are available alongside a fully custom option. Click the button for the tier that best fits your customer.
-
-| Tier | What's included |
-|---|---|
-| **Essential** | Entra ID, Azure Activity, Microsoft 365 — core identity and productivity monitoring |
-| **Standard** | Essential + Defender XDR, Defender for Cloud, Threat Intelligence, UEBA, Key Vault and NSG diagnostics |
-| **Enterprise** | All solutions, all automatable connectors, all diagnostic resource types, UEBA, High/Medium/Low severity rules |
-| **Custom** | Full menu — select exactly what you want |
-
-[![Deploy Essential](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fliamsmith-p%2Fsecure365-Sentinel-Genesis%2Fmain%2Fazuredeploy.json/createUIDefinitionUri/https%3A%2F%2Fraw.githubusercontent.com%2Fliamsmith-p%2Fsecure365-Sentinel-Genesis%2Fmain%2FcreateUiDefinition.essential.json)
-
-[![Deploy Standard](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fliamsmith-p%2Fsecure365-Sentinel-Genesis%2Fmain%2Fazuredeploy.json/createUIDefinitionUri/https%3A%2F%2Fraw.githubusercontent.com%2Fliamsmith-p%2Fsecure365-Sentinel-Genesis%2Fmain%2FcreateUiDefinition.standard.json)
-
-[![Deploy Enterprise](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fliamsmith-p%2Fsecure365-Sentinel-Genesis%2Fmain%2Fazuredeploy.json/createUIDefinitionUri/https%3A%2F%2Fraw.githubusercontent.com%2Fliamsmith-p%2Fsecure365-Sentinel-Genesis%2Fmain%2FcreateUiDefinition.enterprise.json)
-
-[![Deploy Custom](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fliamsmith-p%2Fsecure365-Sentinel-Genesis%2Fmain%2Fazuredeploy.json/createUIDefinitionUri/https%3A%2F%2Fraw.githubusercontent.com%2Fliamsmith-p%2Fsecure365-Sentinel-Genesis%2Fmain%2FcreateUiDefinition.json)
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fliamsmith-p%2Fsecure365-Sentinel-Genesis%2Fmain%2Fazuredeploy.json/createUIDefinitionUri/https%3A%2F%2Fraw.githubusercontent.com%2Fliamsmith-p%2Fsecure365-Sentinel-Genesis%2Fmain%2FcreateUiDefinition.json)
 
 ---
 

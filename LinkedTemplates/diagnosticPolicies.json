@@ -33,6 +33,7 @@
                     "contentVersion": "1.0.0.0",
                     "parameters": {
                         "workspaceId": { "type": "string" },
+                        "workspaceName": { "type": "string" },
                         "location": { "type": "string" },
                         "enableDiagnosticPolicies": { "type": "array" }
                     },
@@ -799,6 +800,7 @@
                 },
                 "parameters": {
                     "workspaceId":               { "value": "[variables('workspaceId')]" },
+                    "workspaceName":             { "value": "[parameters('workspaceName')]" },
                     "location":                  { "value": "[parameters('location')]" },
                     "enableDiagnosticPolicies":  { "value": "[parameters('enableDiagnosticPolicies')]" }
                 }

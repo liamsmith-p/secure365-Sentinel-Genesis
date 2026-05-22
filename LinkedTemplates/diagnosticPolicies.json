@@ -38,18 +38,18 @@
                     },
                     "variables": {
                         "contributorRoleId": "b24988ac-6180-42a0-ab88-20f7382dd24c",
-                        "kvPolicyName":      "[guid(subscription().id, 'sentinel-kv-diag-policy')]",
-                        "nsgPolicyName":     "[guid(subscription().id, 'sentinel-nsg-diag-policy')]",
-                        "storagePolicyName": "[guid(subscription().id, 'sentinel-storage-diag-policy')]",
-                        "sqlPolicyName":     "[guid(subscription().id, 'sentinel-sql-diag-policy')]",
-                        "fwPolicyName":      "[guid(subscription().id, 'sentinel-fw-diag-policy')]",
-                        "agwPolicyName":     "[guid(subscription().id, 'sentinel-agw-diag-policy')]",
-                        "kvAssignName":      "[guid(subscription().id, 'sentinel-kv-diag-assign')]",
-                        "nsgAssignName":     "[guid(subscription().id, 'sentinel-nsg-diag-assign')]",
-                        "storageAssignName": "[guid(subscription().id, 'sentinel-storage-diag-assign')]",
-                        "sqlAssignName":     "[guid(subscription().id, 'sentinel-sql-diag-assign')]",
-                        "fwAssignName":      "[guid(subscription().id, 'sentinel-fw-diag-assign')]",
-                        "agwAssignName":     "[guid(subscription().id, 'sentinel-agw-diag-assign')]"
+                        "kvPolicyName":      "[guid(subscription().id, parameters('workspaceName'), 'sentinel-kv-diag-policy')]",
+                        "nsgPolicyName":     "[guid(subscription().id, parameters('workspaceName'), 'sentinel-nsg-diag-policy')]",
+                        "storagePolicyName": "[guid(subscription().id, parameters('workspaceName'), 'sentinel-storage-diag-policy')]",
+                        "sqlPolicyName":     "[guid(subscription().id, parameters('workspaceName'), 'sentinel-sql-diag-policy')]",
+                        "fwPolicyName":      "[guid(subscription().id, parameters('workspaceName'), 'sentinel-fw-diag-policy')]",
+                        "agwPolicyName":     "[guid(subscription().id, parameters('workspaceName'), 'sentinel-agw-diag-policy')]",
+                        "kvAssignName":      "[guid(subscription().id, parameters('workspaceName'), 'sentinel-kv-diag-assign')]",
+                        "nsgAssignName":     "[guid(subscription().id, parameters('workspaceName'), 'sentinel-nsg-diag-assign')]",
+                        "storageAssignName": "[guid(subscription().id, parameters('workspaceName'), 'sentinel-storage-diag-assign')]",
+                        "sqlAssignName":     "[guid(subscription().id, parameters('workspaceName'), 'sentinel-sql-diag-assign')]",
+                        "fwAssignName":      "[guid(subscription().id, parameters('workspaceName'), 'sentinel-fw-diag-assign')]",
+                        "agwAssignName":     "[guid(subscription().id, parameters('workspaceName'), 'sentinel-agw-diag-assign')]"
                     },
                     "resources": [
 
@@ -61,7 +61,7 @@
                             "apiVersion": "2021-06-01",
                             "name": "[variables('kvPolicyName')]",
                             "properties": {
-                                "displayName": "Sentinel - Deploy diagnostic settings for Key Vault",
+                                "displayName": "[concat('Sentinel - Deploy diagnostic settings for Key Vault (', parameters('workspaceName'), ')')]",
                                 "policyType": "Custom",
                                 "mode": "Indexed",
                                 "parameters": {
@@ -126,7 +126,7 @@
                             "location": "[parameters('location')]",
                             "identity": { "type": "SystemAssigned" },
                             "properties": {
-                                "displayName": "Sentinel - Key Vault diagnostic settings",
+                                "displayName": "[concat('Sentinel - Key Vault diagnostic settings (', parameters('workspaceName'), ')')]",
                                 "policyDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('kvPolicyName'))]",
                                 "parameters": {
                                     "workspaceId": { "value": "[parameters('workspaceId')]" }
@@ -154,7 +154,7 @@
                             "condition": "[contains(parameters('enableDiagnosticPolicies'), 'AzureKeyVault')]",
                             "type": "Microsoft.PolicyInsights/remediations",
                             "apiVersion": "2021-10-01",
-                            "name": "sentinel-kv-diag-remediation",
+                            "name": "[concat('sentinel-kv-diag-', parameters('workspaceName'))]",
                             "properties": {
                                 "policyAssignmentId": "[subscriptionResourceId('Microsoft.Authorization/policyAssignments', variables('kvAssignName'))]",
                                 "resourceDiscoveryMode": "ReEvaluateCompliance"
@@ -172,7 +172,7 @@
                             "apiVersion": "2021-06-01",
                             "name": "[variables('nsgPolicyName')]",
                             "properties": {
-                                "displayName": "Sentinel - Deploy diagnostic settings for NSG",
+                                "displayName": "[concat('Sentinel - Deploy diagnostic settings for NSG (', parameters('workspaceName'), ')')]",
                                 "policyType": "Custom",
                                 "mode": "Indexed",
                                 "parameters": {
@@ -238,7 +238,7 @@
                             "location": "[parameters('location')]",
                             "identity": { "type": "SystemAssigned" },
                             "properties": {
-                                "displayName": "Sentinel - NSG diagnostic settings",
+                                "displayName": "[concat('Sentinel - NSG diagnostic settings (', parameters('workspaceName'), ')')]",
                                 "policyDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('nsgPolicyName'))]",
                                 "parameters": {
                                     "workspaceId": { "value": "[parameters('workspaceId')]" }
@@ -266,7 +266,7 @@
                             "condition": "[contains(parameters('enableDiagnosticPolicies'), 'AzureNetworkSecurityGroup')]",
                             "type": "Microsoft.PolicyInsights/remediations",
                             "apiVersion": "2021-10-01",
-                            "name": "sentinel-nsg-diag-remediation",
+                            "name": "[concat('sentinel-nsg-diag-', parameters('workspaceName'))]",
                             "properties": {
                                 "policyAssignmentId": "[subscriptionResourceId('Microsoft.Authorization/policyAssignments', variables('nsgAssignName'))]",
                                 "resourceDiscoveryMode": "ReEvaluateCompliance"
@@ -284,7 +284,7 @@
                             "apiVersion": "2021-06-01",
                             "name": "[variables('storagePolicyName')]",
                             "properties": {
-                                "displayName": "Sentinel - Deploy diagnostic settings for Storage Account",
+                                "displayName": "[concat('Sentinel - Deploy diagnostic settings for Storage Account (', parameters('workspaceName'), ')')]",
                                 "policyType": "Custom",
                                 "mode": "Indexed",
                                 "parameters": {
@@ -409,7 +409,7 @@
                             "location": "[parameters('location')]",
                             "identity": { "type": "SystemAssigned" },
                             "properties": {
-                                "displayName": "Sentinel - Storage Account diagnostic settings",
+                                "displayName": "[concat('Sentinel - Storage Account diagnostic settings (', parameters('workspaceName'), ')')]",
                                 "policyDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('storagePolicyName'))]",
                                 "parameters": {
                                     "workspaceId": { "value": "[parameters('workspaceId')]" }
@@ -437,7 +437,7 @@
                             "condition": "[contains(parameters('enableDiagnosticPolicies'), 'AzureStorageAccount')]",
                             "type": "Microsoft.PolicyInsights/remediations",
                             "apiVersion": "2021-10-01",
-                            "name": "sentinel-storage-diag-remediation",
+                            "name": "[concat('sentinel-storage-diag-', parameters('workspaceName'))]",
                             "properties": {
                                 "policyAssignmentId": "[subscriptionResourceId('Microsoft.Authorization/policyAssignments', variables('storageAssignName'))]",
                                 "resourceDiscoveryMode": "ReEvaluateCompliance"
@@ -455,7 +455,7 @@
                             "apiVersion": "2021-06-01",
                             "name": "[variables('sqlPolicyName')]",
                             "properties": {
-                                "displayName": "Sentinel - Deploy diagnostic settings for SQL Database",
+                                "displayName": "[concat('Sentinel - Deploy diagnostic settings for SQL Database (', parameters('workspaceName'), ')')]",
                                 "policyType": "Custom",
                                 "mode": "Indexed",
                                 "parameters": {
@@ -530,7 +530,7 @@
                             "location": "[parameters('location')]",
                             "identity": { "type": "SystemAssigned" },
                             "properties": {
-                                "displayName": "Sentinel - SQL Database diagnostic settings",
+                                "displayName": "[concat('Sentinel - SQL Database diagnostic settings (', parameters('workspaceName'), ')')]",
                                 "policyDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('sqlPolicyName'))]",
                                 "parameters": {
                                     "workspaceId": { "value": "[parameters('workspaceId')]" }
@@ -558,7 +558,7 @@
                             "condition": "[contains(parameters('enableDiagnosticPolicies'), 'AzureSqlDatabase')]",
                             "type": "Microsoft.PolicyInsights/remediations",
                             "apiVersion": "2021-10-01",
-                            "name": "sentinel-sql-diag-remediation",
+                            "name": "[concat('sentinel-sql-diag-', parameters('workspaceName'))]",
                             "properties": {
                                 "policyAssignmentId": "[subscriptionResourceId('Microsoft.Authorization/policyAssignments', variables('sqlAssignName'))]",
                                 "resourceDiscoveryMode": "ReEvaluateCompliance"
@@ -576,7 +576,7 @@
                             "apiVersion": "2021-06-01",
                             "name": "[variables('fwPolicyName')]",
                             "properties": {
-                                "displayName": "Sentinel - Deploy diagnostic settings for Azure Firewall",
+                                "displayName": "[concat('Sentinel - Deploy diagnostic settings for Azure Firewall (', parameters('workspaceName'), ')')]",
                                 "policyType": "Custom",
                                 "mode": "Indexed",
                                 "parameters": {
@@ -644,7 +644,7 @@
                             "location": "[parameters('location')]",
                             "identity": { "type": "SystemAssigned" },
                             "properties": {
-                                "displayName": "Sentinel - Azure Firewall diagnostic settings",
+                                "displayName": "[concat('Sentinel - Azure Firewall diagnostic settings (', parameters('workspaceName'), ')')]",
                                 "policyDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('fwPolicyName'))]",
                                 "parameters": {
                                     "workspaceId": { "value": "[parameters('workspaceId')]" }
@@ -672,7 +672,7 @@
                             "condition": "[contains(parameters('enableDiagnosticPolicies'), 'AzureFirewall')]",
                             "type": "Microsoft.PolicyInsights/remediations",
                             "apiVersion": "2021-10-01",
-                            "name": "sentinel-fw-diag-remediation",
+                            "name": "[concat('sentinel-fw-diag-', parameters('workspaceName'))]",
                             "properties": {
                                 "policyAssignmentId": "[subscriptionResourceId('Microsoft.Authorization/policyAssignments', variables('fwAssignName'))]",
                                 "resourceDiscoveryMode": "ReEvaluateCompliance"
@@ -690,7 +690,7 @@
                             "apiVersion": "2021-06-01",
                             "name": "[variables('agwPolicyName')]",
                             "properties": {
-                                "displayName": "Sentinel - Deploy diagnostic settings for Application Gateway",
+                                "displayName": "[concat('Sentinel - Deploy diagnostic settings for Application Gateway (', parameters('workspaceName'), ')')]",
                                 "policyType": "Custom",
                                 "mode": "Indexed",
                                 "parameters": {
@@ -757,7 +757,7 @@
                             "location": "[parameters('location')]",
                             "identity": { "type": "SystemAssigned" },
                             "properties": {
-                                "displayName": "Sentinel - Application Gateway diagnostic settings",
+                                "displayName": "[concat('Sentinel - Application Gateway diagnostic settings (', parameters('workspaceName'), ')')]",
                                 "policyDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/policyDefinitions', variables('agwPolicyName'))]",
                                 "parameters": {
                                     "workspaceId": { "value": "[parameters('workspaceId')]" }
@@ -785,7 +785,7 @@
                             "condition": "[contains(parameters('enableDiagnosticPolicies'), 'AzureApplicationGateway')]",
                             "type": "Microsoft.PolicyInsights/remediations",
                             "apiVersion": "2021-10-01",
-                            "name": "sentinel-agw-diag-remediation",
+                            "name": "[concat('sentinel-agw-diag-', parameters('workspaceName'))]",
                             "properties": {
                                 "policyAssignmentId": "[subscriptionResourceId('Microsoft.Authorization/policyAssignments', variables('agwAssignName'))]",
                                 "resourceDiscoveryMode": "ReEvaluateCompliance"

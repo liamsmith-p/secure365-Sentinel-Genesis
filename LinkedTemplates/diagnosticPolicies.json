@@ -39,18 +39,18 @@
                     },
                     "variables": {
                         "contributorRoleId": "b24988ac-6180-42a0-ab88-20f7382dd24c",
-                        "kvPolicyName":      "[guid(subscription().id, parameters('workspaceName'), 'sentinel-kv-diag-policy')]",
-                        "nsgPolicyName":     "[guid(subscription().id, parameters('workspaceName'), 'sentinel-nsg-diag-policy')]",
-                        "storagePolicyName": "[guid(subscription().id, parameters('workspaceName'), 'sentinel-storage-diag-policy')]",
-                        "sqlPolicyName":     "[guid(subscription().id, parameters('workspaceName'), 'sentinel-sql-diag-policy')]",
-                        "fwPolicyName":      "[guid(subscription().id, parameters('workspaceName'), 'sentinel-fw-diag-policy')]",
-                        "agwPolicyName":     "[guid(subscription().id, parameters('workspaceName'), 'sentinel-agw-diag-policy')]",
-                        "kvAssignName":      "[guid(subscription().id, parameters('workspaceName'), 'sentinel-kv-diag-assign')]",
-                        "nsgAssignName":     "[guid(subscription().id, parameters('workspaceName'), 'sentinel-nsg-diag-assign')]",
-                        "storageAssignName": "[guid(subscription().id, parameters('workspaceName'), 'sentinel-storage-diag-assign')]",
-                        "sqlAssignName":     "[guid(subscription().id, parameters('workspaceName'), 'sentinel-sql-diag-assign')]",
-                        "fwAssignName":      "[guid(subscription().id, parameters('workspaceName'), 'sentinel-fw-diag-assign')]",
-                        "agwAssignName":     "[guid(subscription().id, parameters('workspaceName'), 'sentinel-agw-diag-assign')]"
+                        "kvPolicyName":      "[guid(subscription().id, parameters('workspaceId'), 'sentinel-kv-diag-policy')]",
+                        "nsgPolicyName":     "[guid(subscription().id, parameters('workspaceId'), 'sentinel-nsg-diag-policy')]",
+                        "storagePolicyName": "[guid(subscription().id, parameters('workspaceId'), 'sentinel-storage-diag-policy')]",
+                        "sqlPolicyName":     "[guid(subscription().id, parameters('workspaceId'), 'sentinel-sql-diag-policy')]",
+                        "fwPolicyName":      "[guid(subscription().id, parameters('workspaceId'), 'sentinel-fw-diag-policy')]",
+                        "agwPolicyName":     "[guid(subscription().id, parameters('workspaceId'), 'sentinel-agw-diag-policy')]",
+                        "kvAssignName":      "[guid(subscription().id, parameters('workspaceId'), 'sentinel-kv-diag-assign')]",
+                        "nsgAssignName":     "[guid(subscription().id, parameters('workspaceId'), 'sentinel-nsg-diag-assign')]",
+                        "storageAssignName": "[guid(subscription().id, parameters('workspaceId'), 'sentinel-storage-diag-assign')]",
+                        "sqlAssignName":     "[guid(subscription().id, parameters('workspaceId'), 'sentinel-sql-diag-assign')]",
+                        "fwAssignName":      "[guid(subscription().id, parameters('workspaceId'), 'sentinel-fw-diag-assign')]",
+                        "agwAssignName":     "[guid(subscription().id, parameters('workspaceId'), 'sentinel-agw-diag-assign')]"
                     },
                     "resources": [
 
@@ -155,7 +155,7 @@
                             "condition": "[contains(parameters('enableDiagnosticPolicies'), 'AzureKeyVault')]",
                             "type": "Microsoft.PolicyInsights/remediations",
                             "apiVersion": "2021-10-01",
-                            "name": "[concat('sentinel-kv-diag-', parameters('workspaceName'))]",
+                            "name": "[concat('sentinel-kv-diag-', uniqueString(parameters('workspaceId')))]",
                             "properties": {
                                 "policyAssignmentId": "[subscriptionResourceId('Microsoft.Authorization/policyAssignments', variables('kvAssignName'))]",
                                 "resourceDiscoveryMode": "ReEvaluateCompliance"
@@ -267,7 +267,7 @@
                             "condition": "[contains(parameters('enableDiagnosticPolicies'), 'AzureNetworkSecurityGroup')]",
                             "type": "Microsoft.PolicyInsights/remediations",
                             "apiVersion": "2021-10-01",
-                            "name": "[concat('sentinel-nsg-diag-', parameters('workspaceName'))]",
+                            "name": "[concat('sentinel-nsg-diag-', uniqueString(parameters('workspaceId')))]",
                             "properties": {
                                 "policyAssignmentId": "[subscriptionResourceId('Microsoft.Authorization/policyAssignments', variables('nsgAssignName'))]",
                                 "resourceDiscoveryMode": "ReEvaluateCompliance"
@@ -438,7 +438,7 @@
                             "condition": "[contains(parameters('enableDiagnosticPolicies'), 'AzureStorageAccount')]",
                             "type": "Microsoft.PolicyInsights/remediations",
                             "apiVersion": "2021-10-01",
-                            "name": "[concat('sentinel-storage-diag-', parameters('workspaceName'))]",
+                            "name": "[concat('sentinel-storage-diag-', uniqueString(parameters('workspaceId')))]",
                             "properties": {
                                 "policyAssignmentId": "[subscriptionResourceId('Microsoft.Authorization/policyAssignments', variables('storageAssignName'))]",
                                 "resourceDiscoveryMode": "ReEvaluateCompliance"
@@ -559,7 +559,7 @@
                             "condition": "[contains(parameters('enableDiagnosticPolicies'), 'AzureSqlDatabase')]",
                             "type": "Microsoft.PolicyInsights/remediations",
                             "apiVersion": "2021-10-01",
-                            "name": "[concat('sentinel-sql-diag-', parameters('workspaceName'))]",
+                            "name": "[concat('sentinel-sql-diag-', uniqueString(parameters('workspaceId')))]",
                             "properties": {
                                 "policyAssignmentId": "[subscriptionResourceId('Microsoft.Authorization/policyAssignments', variables('sqlAssignName'))]",
                                 "resourceDiscoveryMode": "ReEvaluateCompliance"
@@ -673,7 +673,7 @@
                             "condition": "[contains(parameters('enableDiagnosticPolicies'), 'AzureFirewall')]",
                             "type": "Microsoft.PolicyInsights/remediations",
                             "apiVersion": "2021-10-01",
-                            "name": "[concat('sentinel-fw-diag-', parameters('workspaceName'))]",
+                            "name": "[concat('sentinel-fw-diag-', uniqueString(parameters('workspaceId')))]",
                             "properties": {
                                 "policyAssignmentId": "[subscriptionResourceId('Microsoft.Authorization/policyAssignments', variables('fwAssignName'))]",
                                 "resourceDiscoveryMode": "ReEvaluateCompliance"
@@ -786,7 +786,7 @@
                             "condition": "[contains(parameters('enableDiagnosticPolicies'), 'AzureApplicationGateway')]",
                             "type": "Microsoft.PolicyInsights/remediations",
                             "apiVersion": "2021-10-01",
-                            "name": "[concat('sentinel-agw-diag-', parameters('workspaceName'))]",
+                            "name": "[concat('sentinel-agw-diag-', uniqueString(parameters('workspaceId')))]",
                             "properties": {
                                 "policyAssignmentId": "[subscriptionResourceId('Microsoft.Authorization/policyAssignments', variables('agwAssignName'))]",
                                 "resourceDiscoveryMode": "ReEvaluateCompliance"

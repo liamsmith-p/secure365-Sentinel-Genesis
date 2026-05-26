@@ -34,15 +34,27 @@ $SubscriptionId = $context.Subscription.Id
 $baseUri = "https://management.azure.com/subscriptions/${SubscriptionId}/resourceGroups/${ResourceGroup}/providers/Microsoft.OperationalInsights/workspaces/${Workspace}"
 $alertUri = "$baseUri/providers/Microsoft.SecurityInsights/alertRules/"
 
+function Get-AllPages {
+    param([string]$Uri, [hashtable]$Headers)
+    $items = @()
+    $nextUri = $Uri
+    do {
+        $response = Invoke-RestMethod -Uri $nextUri -Method Get -Headers $Headers
+        $items += $response.value
+        $nextUri = $response.nextLink
+    } while ($nextUri)
+    return $items
+}
+
 $candidateVersions = @('2024-09-01', '2024-04-01-preview', '2024-03-01', '2024-01-01-preview')
 $allSolutions = $null
 $workingApiVersion = $null
 foreach ($apiVersion in $candidateVersions) {
     try {
         $url = $baseUri + "/providers/Microsoft.SecurityInsights/contentProductPackages?api-version=$apiVersion"
-        $allSolutions = (Invoke-RestMethod -Method "Get" -Uri $url -Headers $authHeader).value
+        $allSolutions = Get-AllPages -Uri $url -Headers $authHeader
         $workingApiVersion = $apiVersion
-        Write-Host "contentProductPackages: using api-version $apiVersion"
+        Write-Host "contentProductPackages: using api-version $apiVersion, found $($allSolutions.Count) packages"
         break
     } catch {
         Write-Host "contentProductPackages: api-version $apiVersion failed ($($_.Exception.Response.StatusCode.value__)) - $($_.ErrorDetails.Message)"
@@ -141,14 +153,14 @@ $solutionURL = $baseUri + "/providers/Microsoft.SecurityInsights/contentTemplate
 #Add a filter only return analytic rule templates
 $solutionURL += "&%24filter=(properties%2FcontentKind%20eq%20'AnalyticsRule')"
 
-$results = (Invoke-RestMethod -Uri $solutionURL -Method Get -Headers $authHeader).value
+$results = Get-AllPages -Uri $solutionURL -Headers $authHeader
 
 $BaseAlertUri = $baseUri + "/providers/Microsoft.SecurityInsights/alertRules/"
 $BaseMetaURI = $baseURI + "/providers/Microsoft.SecurityInsights/metadata/analyticsrule-"
 
 # Build a set of template names that already have an active rule to avoid duplicates on re-deployment
 $existingRulesUrl = $baseUri + "/providers/Microsoft.SecurityInsights/alertRules?api-version=2024-01-01-preview"
-$existingRules = (Invoke-RestMethod -Uri $existingRulesUrl -Method Get -Headers $authHeader).value
+$existingRules = Get-AllPages -Uri $existingRulesUrl -Headers $authHeader
 $existingTemplateNames = @{}
 foreach ($rule in $existingRules) {
     $templateName = $rule.properties.alertRuleTemplateName

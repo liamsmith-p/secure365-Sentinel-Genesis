@@ -1,6 +1,8 @@
 param(
     [Parameter(Mandatory = $true)][string]$ResourceGroup,
     [Parameter(Mandatory = $true)][string]$Workspace,
+    [Parameter(Mandatory = $true)][string]$SubscriptionId,
+    [Parameter(Mandatory = $true)][string]$TenantId,
     [Parameter(Mandatory = $true)][string]$Region,
     [Parameter(Mandatory = $false)][string[]]$Solutions = @(),
     [Parameter(Mandatory = $false)][string[]]$SeveritiesToInclude = @("Informational", "Low", "Medium", "High")
@@ -19,16 +21,14 @@ if ($Solutions.Count -eq 0 -and $env:SENTINEL_SOLUTIONS) {
 
 Write-Host "Solutions to deploy: $($Solutions -join ', ')"
 
-Write-Host "Connected to Azure with subscription: " $context.Subscription
-$context = Get-AzContext
+Write-Host "Connected to Azure. SubscriptionId: $SubscriptionId TenantId: $TenantId"
 $instanceProfile = [Microsoft.Azure.Commands.Common.Authentication.Abstractions.AzureRmProfileProvider]::Instance.Profile
 $profileClient = New-Object -TypeName Microsoft.Azure.Commands.ResourceManager.Common.RMProfileClient -ArgumentList ($instanceProfile)
-$token = $profileClient.AcquireAccessToken($context.Subscription.TenantId)
+$token = $profileClient.AcquireAccessToken($TenantId)
 $authHeader = @{
     'Content-Type'  = 'application/json'
     'Authorization' = 'Bearer ' + $token.AccessToken
 }
-$SubscriptionId = $context.Subscription.Id
 
 
 $baseUri = "https://management.azure.com/subscriptions/${SubscriptionId}/resourceGroups/${ResourceGroup}/providers/Microsoft.OperationalInsights/workspaces/${Workspace}"
@@ -120,7 +120,7 @@ if ($Solutions -contains "Threat Intelligence (NEW)") {
     $mdtiBody = @{
         kind       = "MicrosoftThreatIntelligence"
         properties = @{
-            tenantId  = $context.Subscription.TenantId
+            tenantId  = $TenantId
             dataTypes = @{
                 microsoftEmergingThreatFeed = @{
                     state          = "enabled"

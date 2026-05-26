@@ -113,7 +113,7 @@
             "properties": {
                 "forceUpdateTag": "[parameters('forceUpdateTag')]",
                 "azPowerShellVersion": "3.0",
-                "arguments": "[concat('-Workspace ', parameters('workspaceName'), ' -ResourceGroup ', resourceGroup().name, ' -SeveritiesToInclude ', string(variables('severities')), ' -Region ', parameters('location'))]",
+                "arguments": "[concat('-Workspace ', parameters('workspaceName'), ' -ResourceGroup ', resourceGroup().name, ' -SubscriptionId ', subscription().subscriptionId, ' -TenantId ', subscription().tenantId, ' -SeveritiesToInclude ', string(variables('severities')), ' -Region ', parameters('location'))]",
                 "environmentVariables": [
                     {
                         "name": "SENTINEL_SOLUTIONS",

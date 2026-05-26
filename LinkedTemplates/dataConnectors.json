@@ -41,7 +41,8 @@
         "office365Name": "[concat('office365', uniqueString(resourceGroup().id))]",
         "xdrName":         "[concat('xdr', uniqueString(resourceGroup().id))]",
         "dynamics365Name": "[concat('dynamics365', uniqueString(resourceGroup().id))]",
-        "powerBIName":     "[concat('powerbi', uniqueString(resourceGroup().id))]"
+        "powerBIName":     "[concat('powerbi', uniqueString(resourceGroup().id))]",
+        "projectName":     "[concat('project', uniqueString(resourceGroup().id))]"
     },
     "resources": [
         {
@@ -214,6 +215,22 @@
             "location": "[parameters('location')]",
             "name": "[concat(parameters('workspaceName'),'/Microsoft.SecurityInsights/',variables('powerBIName'))]",
             "kind": "OfficePowerBI",
+            "properties": {
+                "tenantId": "[variables('tenantId')]",
+                "dataTypes": {
+                    "logs": {
+                        "state": "enabled"
+                    }
+                }
+            }
+        },
+        {
+            "condition": "[contains(parameters('enableDataConnectors'), 'MicrosoftProject')]",
+            "type": "Microsoft.OperationalInsights/workspaces/providers/dataConnectors",
+            "apiVersion": "2021-10-01-preview",
+            "location": "[parameters('location')]",
+            "name": "[concat(parameters('workspaceName'),'/Microsoft.SecurityInsights/',variables('projectName'))]",
+            "kind": "Office365Project",
             "properties": {
                 "tenantId": "[variables('tenantId')]",
                 "dataTypes": {

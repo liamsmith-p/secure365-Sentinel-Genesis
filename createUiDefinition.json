@@ -382,6 +382,11 @@
                                     "value": "MicrosoftPowerBI"
                                 },
                                 {
+                                    "label": "Microsoft Project",
+                                    "description": "Ingest Microsoft Project activity logs into Sentinel. Requires the Microsoft Project solution to also be selected. Global Admin or Security Admin permission required.",
+                                    "value": "MicrosoftProject"
+                                },
+                                {
                                     "label": "Dynamics 365",
                                     "description": "Ingest Dynamics 365 activity logs into Sentinel. Requires the Dynamics 365 solution to also be selected. Global Admin or Security Admin permission required.",
                                     "value": "Dynamics365"

@@ -327,7 +327,7 @@
                     }
                 }
             }
-        }
+        },
         {
             "condition": "[parameters('enableLighthouse')]",
             "name": "lighthouseDelegation",

@@ -1,0 +1,93 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "mspTenantId": {
+            "type": "string",
+            "metadata": {
+                "description": "The tenant ID of the managing service provider"
+            }
+        },
+        "lighthouseOfferName": {
+            "type": "string",
+            "metadata": {
+                "description": "Display name for the Lighthouse registration definition"
+            }
+        },
+        "lighthouseOfferDescription": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Description for the Lighthouse registration definition"
+            }
+        },
+        "lighthouseAuthorizations": {
+            "type": "array",
+            "metadata": {
+                "description": "Array of authorizations granting MSP principals access to customer resources. Each entry requires principalId, principalIdDisplayName, and roleDefinitionId."
+            }
+        },
+        "location": {
+            "type": "string"
+        }
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2021-04-01",
+            "name": "lighthouseSubscriptionDeploy",
+            "location": "[parameters('location')]",
+            "subscriptionId": "[subscription().subscriptionId]",
+            "properties": {
+                "mode": "Incremental",
+                "expressionEvaluationOptions": {
+                    "scope": "inner"
+                },
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {
+                        "mspTenantId":      { "type": "string" },
+                        "offerName":        { "type": "string" },
+                        "offerDescription": { "type": "string" },
+                        "authorizations":   { "type": "array" }
+                    },
+                    "variables": {
+                        "definitionId": "[guid(subscription().subscriptionId, parameters('offerName'))]",
+                        "assignmentId": "[guid(subscription().subscriptionId, parameters('offerName'), 'assignment')]"
+                    },
+                    "resources": [
+                        {
+                            "type": "Microsoft.ManagedServices/registrationDefinitions",
+                            "apiVersion": "2022-10-01",
+                            "name": "[variables('definitionId')]",
+                            "properties": {
+                                "registrationDefinitionName": "[parameters('offerName')]",
+                                "description": "[parameters('offerDescription')]",
+                                "managedByTenantId": "[parameters('mspTenantId')]",
+                                "authorizations": "[parameters('authorizations')]"
+                            }
+                        },
+                        {
+                            "type": "Microsoft.ManagedServices/registrationAssignments",
+                            "apiVersion": "2022-10-01",
+                            "name": "[variables('assignmentId')]",
+                            "dependsOn": [
+                                "[subscriptionResourceId('Microsoft.ManagedServices/registrationDefinitions', variables('definitionId'))]"
+                            ],
+                            "properties": {
+                                "registrationDefinitionId": "[subscriptionResourceId('Microsoft.ManagedServices/registrationDefinitions', variables('definitionId'))]"
+                            }
+                        }
+                    ]
+                },
+                "parameters": {
+                    "mspTenantId":      { "value": "[parameters('mspTenantId')]" },
+                    "offerName":        { "value": "[parameters('lighthouseOfferName')]" },
+                    "offerDescription": { "value": "[parameters('lighthouseOfferDescription')]" },
+                    "authorizations":   { "value": "[parameters('lighthouseAuthorizations')]" }
+                }
+            }
+        }
+    ]
+}

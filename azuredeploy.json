@@ -105,6 +105,41 @@
             },
             "defaultValue": false
         },
+        "enableLighthouse": {
+            "type": "bool",
+            "defaultValue": false,
+            "metadata": {
+                "description": "Whether to create an Azure Lighthouse delegation at subscription scope for the managing service provider."
+            }
+        },
+        "mspTenantId": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "The tenant ID of the managing service provider."
+            }
+        },
+        "lighthouseOfferName": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Display name for the Lighthouse registration definition."
+            }
+        },
+        "lighthouseOfferDescription": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Description for the Lighthouse registration definition."
+            }
+        },
+        "lighthouseAuthorizations": {
+            "type": "array",
+            "defaultValue": [],
+            "metadata": {
+                "description": "Authorizations granting MSP principals roles in the customer subscription."
+            }
+        },
         "_artifactsLocation": {
             "type": "string",
             "metadata": {
@@ -289,6 +324,36 @@
                     },
                     "enableDiagnosticPolicies": {
                         "value": "[parameters('enableDiagnosticPolicies')]"
+                    }
+                }
+            }
+        }
+        {
+            "condition": "[parameters('enableLighthouse')]",
+            "name": "lighthouseDelegation",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2021-04-01",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[uri(parameters('_artifactsLocation'), 'LinkedTemplates/lighthouse.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "mspTenantId": {
+                        "value": "[parameters('mspTenantId')]"
+                    },
+                    "lighthouseOfferName": {
+                        "value": "[parameters('lighthouseOfferName')]"
+                    },
+                    "lighthouseOfferDescription": {
+                        "value": "[parameters('lighthouseOfferDescription')]"
+                    },
+                    "lighthouseAuthorizations": {
+                        "value": "[parameters('lighthouseAuthorizations')]"
+                    },
+                    "location": {
+                        "value": "[parameters('location')]"
                     }
                 }
             }

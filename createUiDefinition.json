@@ -519,6 +519,129 @@
                         "visible": "[if(steps('analyticsRules').enableScheduledAlerts, true, false)]"
                     }
                 ]
+            },
+            {
+                "name": "serviceprovider",
+                "label": "Service Provider",
+                "elements": [
+                    {
+                        "name": "infoBoxLighthouse",
+                        "type": "Microsoft.Common.InfoBox",
+                        "visible": true,
+                        "options": {
+                            "icon": "Info",
+                            "text": "Azure Lighthouse delegation allows a managing service provider to access and manage this subscription from their own tenant. Enabling this creates a registration definition and assignment at subscription scope. Requires Owner on the subscription.\n\nCommon role definition IDs:\n• Microsoft Sentinel Contributor — f4c81013-99ee-4d62-a7ee-b3f1f648599a\n• Microsoft Sentinel Reader — 8d289c81-5878-46d4-8554-54e1e3d8b5cb\n• Log Analytics Contributor — 92aaf0da-9dab-42b6-94a3-d43ce8d16293\n• Monitoring Contributor — 749f88d5-cbae-40b8-bcfc-e573ddc772fa\n• Reader — acdd72a7-3385-48ef-bd42-f606fba81ae7"
+                        }
+                    },
+                    {
+                        "name": "enableLighthouse",
+                        "type": "Microsoft.Common.CheckBox",
+                        "label": "Enable Azure Lighthouse delegation to a managing service provider",
+                        "constraints": {
+                            "required": false
+                        },
+                        "visible": true
+                    },
+                    {
+                        "name": "mspTenantId",
+                        "type": "Microsoft.Common.TextBox",
+                        "label": "Managing Tenant ID",
+                        "placeholder": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+                        "toolTip": "The Azure AD tenant ID of the managing service provider.",
+                        "constraints": {
+                            "required": true,
+                            "regex": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+                            "validationMessage": "Must be a valid GUID."
+                        },
+                        "visible": "[steps('serviceprovider').enableLighthouse]"
+                    },
+                    {
+                        "name": "lighthouseOfferName",
+                        "type": "Microsoft.Common.TextBox",
+                        "label": "Offer Name",
+                        "placeholder": "e.g. Contoso Sentinel Management",
+                        "toolTip": "Display name for this Lighthouse delegation. Used as the registration definition name.",
+                        "constraints": {
+                            "required": true,
+                            "validationMessage": "Offer name is required."
+                        },
+                        "visible": "[steps('serviceprovider').enableLighthouse]"
+                    },
+                    {
+                        "name": "lighthouseOfferDescription",
+                        "type": "Microsoft.Common.TextBox",
+                        "label": "Offer Description",
+                        "placeholder": "e.g. Microsoft Sentinel management and monitoring",
+                        "toolTip": "Optional description for this Lighthouse registration.",
+                        "constraints": {
+                            "required": false
+                        },
+                        "visible": "[steps('serviceprovider').enableLighthouse]"
+                    },
+                    {
+                        "name": "lighthouseAuthorizations",
+                        "type": "Microsoft.Common.EditableGrid",
+                        "ariaLabel": "Lighthouse Authorizations",
+                        "label": "Authorizations",
+                        "toolTip": "Each row grants a principal in the managing tenant a specific role in this subscription. Add one row per principal–role pair.",
+                        "visible": "[steps('serviceprovider').enableLighthouse]",
+                        "constraints": {
+                            "width": "Full",
+                            "rows": {
+                                "count": {
+                                    "min": 1,
+                                    "max": 20
+                                }
+                            },
+                            "columns": [
+                                {
+                                    "id": "principalId",
+                                    "header": "Principal Object ID",
+                                    "width": "2fr",
+                                    "element": {
+                                        "name": "principalId",
+                                        "type": "Microsoft.Common.TextBox",
+                                        "placeholder": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+                                        "constraints": {
+                                            "required": true,
+                                            "regex": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+                                            "validationMessage": "Must be a valid GUID."
+                                        }
+                                    }
+                                },
+                                {
+                                    "id": "principalIdDisplayName",
+                                    "header": "Display Name",
+                                    "width": "2fr",
+                                    "element": {
+                                        "name": "principalIdDisplayName",
+                                        "type": "Microsoft.Common.TextBox",
+                                        "placeholder": "e.g. MSP Security Team",
+                                        "constraints": {
+                                            "required": true,
+                                            "validationMessage": "Display name is required."
+                                        }
+                                    }
+                                },
+                                {
+                                    "id": "roleDefinitionId",
+                                    "header": "Role Definition ID",
+                                    "width": "2fr",
+                                    "element": {
+                                        "name": "roleDefinitionId",
+                                        "type": "Microsoft.Common.TextBox",
+                                        "placeholder": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+                                        "constraints": {
+                                            "required": true,
+                                            "regex": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+                                            "validationMessage": "Must be a valid GUID."
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
             }
         ],
         "outputs": {
@@ -536,7 +659,12 @@
             "aadStreams": [],
             "location": "[location()]",
             "enableScheduledAlerts": "[steps('analyticsRules').enableScheduledAlerts]",
-            "severityLevels": "[steps('analyticsRules').severityLevels]"
+            "severityLevels": "[steps('analyticsRules').severityLevels]",
+            "enableLighthouse": "[steps('serviceprovider').enableLighthouse]",
+            "mspTenantId": "[steps('serviceprovider').mspTenantId]",
+            "lighthouseOfferName": "[steps('serviceprovider').lighthouseOfferName]",
+            "lighthouseOfferDescription": "[steps('serviceprovider').lighthouseOfferDescription]",
+            "lighthouseAuthorizations": "[steps('serviceprovider').lighthouseAuthorizations]"
         }
     }
 }

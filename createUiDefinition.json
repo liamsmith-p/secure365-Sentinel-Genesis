@@ -530,7 +530,7 @@
                         "visible": true,
                         "options": {
                             "icon": "Info",
-                            "text": "Azure Lighthouse delegation allows a managing service provider to access and manage this subscription from their own tenant. Enabling this creates a registration definition and assignment at subscription scope. Requires Owner on the subscription.\n\nCommon role definition IDs:\n• Microsoft Sentinel Contributor — f4c81013-99ee-4d62-a7ee-b3f1f648599a\n• Microsoft Sentinel Reader — 8d289c81-5878-46d4-8554-54e1e3d8b5cb\n• Log Analytics Contributor — 92aaf0da-9dab-42b6-94a3-d43ce8d16293\n• Monitoring Contributor — 749f88d5-cbae-40b8-bcfc-e573ddc772fa\n• Reader — acdd72a7-3385-48ef-bd42-f606fba81ae7"
+                            "text": "Azure Lighthouse delegation allows a managing service provider to access and manage this subscription from their own tenant. Enabling this creates a registration definition and assignment at subscription scope. Requires Owner on the subscription.\n\nAdd one row per principal–role pair. Each row maps a principal object ID from the managing tenant to a role in this subscription."
                         }
                     },
                     {
@@ -625,16 +625,29 @@
                                 },
                                 {
                                     "id": "roleDefinitionId",
-                                    "header": "Role Definition ID",
-                                    "width": "2fr",
+                                    "header": "Role",
+                                    "width": "3fr",
                                     "element": {
                                         "name": "roleDefinitionId",
-                                        "type": "Microsoft.Common.TextBox",
-                                        "placeholder": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+                                        "type": "Microsoft.Common.DropDown",
+                                        "placeholder": "Select a role...",
                                         "constraints": {
                                             "required": true,
-                                            "regex": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
-                                            "validationMessage": "Must be a valid GUID."
+                                            "allowedValues": [
+                                                { "label": "Microsoft Sentinel Contributor", "value": "f4c81013-99ee-4d62-a7ee-b3f1f648599a" },
+                                                { "label": "Microsoft Sentinel Reader", "value": "8d289c81-5878-46d4-8554-54e1e3d8b5cb" },
+                                                { "label": "Log Analytics Contributor", "value": "92aaf0da-9dab-42b6-94a3-d43ce8d16293" },
+                                                { "label": "Log Analytics Reader", "value": "73c42c96-874c-492b-b04d-ab87d138a893" },
+                                                { "label": "Monitoring Contributor", "value": "749f88d5-cbae-40b8-bcfc-e573ddc772fa" },
+                                                { "label": "Monitoring Reader", "value": "43d0d8ad-25c7-4714-9337-8ba259a9fe05" },
+                                                { "label": "Security Admin", "value": "fb1c8493-542b-48eb-b624-b4c8fea62acd" },
+                                                { "label": "Security Reader", "value": "39bc4728-0917-49c7-9d2c-d95423bc2eb4" },
+                                                { "label": "Resource Policy Contributor", "value": "36243c78-bf99-498c-9df9-86d9f8d28608" },
+                                                { "label": "Reader", "value": "acdd72a7-3385-48ef-bd42-f606fba81ae7" },
+                                                { "label": "Contributor", "value": "b24988ac-6180-42a0-ab88-20f7382dd24c" },
+                                                { "label": "User Access Administrator", "value": "18d7d88d-d35e-4fb5-a5c3-7773c20a72d8" },
+                                                { "label": "Owner", "value": "8e3af657-a8ff-443c-a75c-2fe8c4bcb635" }
+                                            ]
                                         }
                                     }
                                 }

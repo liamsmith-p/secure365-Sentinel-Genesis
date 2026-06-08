@@ -87,6 +87,17 @@
             }
         },
         {
+            "type": "Microsoft.OperationalInsights/workspaces/tables",
+            "apiVersion": "2022-10-01",
+            "name": "[concat(parameters('workspaceName'), '/SecurityIncident')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.OperationsManagement/solutions', concat('SecurityInsights(', parameters('workspaceName'), ')'))]"
+            ],
+            "properties": {
+                "retentionInDays": 365
+            }
+        },
+        {
             "type": "Microsoft.SecurityInsights/incidents",
             "name": "allinone-empty-incident",
             "dependsOn": [

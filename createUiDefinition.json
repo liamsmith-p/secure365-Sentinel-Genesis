@@ -324,7 +324,7 @@
                         "visible": true,
                         "options": {
                             "icon": "Info",
-                            "text": "Select which Data Connectors to configure. Do NOT select items marked CAUTION if your tenant uses the Microsoft Defender XDR portal.",
+                            "text": "Select which Data Connectors to configure. Defender XDR, Defender for Cloud, Entra ID Identity Protection, and Defender for Cloud Apps are managed via the Microsoft Defender XDR portal and are configured there, not here.",
                             "uri": "https://learn.microsoft.com/azure/sentinel/data-connectors-reference"
                         }
                     },
@@ -352,29 +352,9 @@
                                     "value": "AzureActivity"
                                 },
                                 {
-                                    "label": "Microsoft Defender XDR",
-                                    "description": "Sync Microsoft Defender XDR incidents and alerts into Sentinel. Enables bi-directional incident sync. Global Admin or Security Admin permission required.",
-                                    "value": "MicrosoftDefenderXDR"
-                                },
-                                {
                                     "label": "Microsoft 365 (Exchange, SharePoint, Teams)",
                                     "description": "Ingest Office 365 activity logs from Exchange Online, SharePoint Online, and Microsoft Teams. Global Admin or Security Admin permission required.",
                                     "value": "Office365"
-                                },
-                                {
-                                    "label": "Microsoft Defender for Cloud",
-                                    "description": "Ingest security alerts from Microsoft Defender for Cloud. Security Reader permission required.",
-                                    "value": "MicrosoftDefenderForCloud"
-                                },
-                                {
-                                    "label": "Microsoft Entra ID Identity Protection (CAUTION)",
-                                    "description": "WARNING: Do not select this if your tenant uses Microsoft Defender XDR — Identity Protection is managed by the XDR portal and this will fail with a conflict error. Configure via the Defender portal instead.",
-                                    "value": "AzureActiveDirectoryIDP"
-                                },
-                                {
-                                    "label": "Microsoft Defender for Cloud Apps (CAUTION)",
-                                    "description": "WARNING: Do not select this if your tenant manages Defender for Cloud Apps through the Microsoft Defender XDR portal — it will fail with a conflict error. Configure via the Defender portal instead.",
-                                    "value": "MicrosoftDefenderForCloudApps"
                                 },
                                 {
                                     "label": "Microsoft Power BI",

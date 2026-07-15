@@ -105,6 +105,13 @@
             },
             "defaultValue": false
         },
+        "policySubscriptions": {
+            "type": "array",
+            "metadata": {
+                "description": "Subscription IDs the diagnostic settings policy is assigned to. Each assignment streams to the workspace. Defaults to the workspace subscription when empty."
+            },
+            "defaultValue": []
+        },
         "enableLighthouse": {
             "type": "bool",
             "defaultValue": false,
@@ -324,6 +331,9 @@
                     },
                     "enableDiagnosticPolicies": {
                         "value": "[parameters('enableDiagnosticPolicies')]"
+                    },
+                    "targetSubscriptions": {
+                        "value": "[if(empty(parameters('policySubscriptions')), array(subscription().subscriptionId), parameters('policySubscriptions'))]"
                     }
                 }
             }

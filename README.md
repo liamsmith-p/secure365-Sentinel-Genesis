@@ -78,7 +78,7 @@ Click the relevant **Deploy to Azure** button above and work through each tab.
 - Under **Identity Providers**, select **Microsoft Entra ID** for cloud identity sync
 - Do **not** select **Active Directory** unless Microsoft Defender for Identity (MDI) is already deployed and fully onboarded — selecting it without MDI will fail with a precondition error
 
-**Enable Sentinel health diagnostics** — enables diagnostic logging for analytics rules, data connectors, and automation rules within Sentinel itself.
+**Enable Sentinel auditing and health monitoring** — creates the full diagnostic setting (`allLogs`) that streams both health (`SentinelHealth`) and audit (`SentinelAudit`) data for all Sentinel resource types — analytics rules, data connectors, automation rules, and playbooks. This is equivalent to clicking **Enable** on the Sentinel **Auditing and health monitoring** settings page.
 
 ---
 

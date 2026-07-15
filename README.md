@@ -202,6 +202,7 @@ Configures diagnostic settings on existing resources in the subscription at depl
 | CEF / Syslog via AMA | ❌ Manual — requires forwarder and DCR configuration |
 | Entra ID IDP / Defender for Cloud Apps (if XDR-managed) | ❌ Not supported — configure via Defender portal |
 | Azure Firewall / WAF Solution data connection (via ARM connectors) | ❌ Data flows via Diagnostics tab, not a Sentinel connector |
+| Playbook (Logic App) permissions for automation | ⚠️ Scripted — run `Scripts/Configure-PlaybookPermissions.ps1` in your own user context (not part of the ARM deployment) |
 
 ---
 
@@ -216,6 +217,20 @@ After the deployment completes:
 3. **Review analytics rules** — go to **Configuration > Analytics** and confirm rules are in Active state. Rules that reference data sources not yet connected will show a warning — this is expected until the data source is live.
 
 4. **Configure agent-based connectors if selected** — if you installed the Windows Security Events or CEF solutions, deploy Azure Monitor Agent and configure the relevant Data Collection Rules on your target machines or log forwarders.
+
+5. **Configure playbook permissions (optional)** — if Sentinel automation rules need to run playbooks (Logic Apps), grant Sentinel permission on the resource groups that contain those playbooks. This is the scripted equivalent of the Sentinel **Settings > Playbook permissions > Configure permissions** panel — it assigns the Azure Security Insights app the **Microsoft Sentinel Automation Contributor** role on each selected resource group.
+
+   Run it **in your own user context** (the same context you'd use in the portal) — not as part of the ARM deployment, and no extra permissions beyond Owner on the target resource groups:
+
+   ```powershell
+   # Interactive — lists the resource groups in the current subscription and lets you pick
+   ./Scripts/Configure-PlaybookPermissions.ps1
+
+   # Or specify them directly
+   ./Scripts/Configure-PlaybookPermissions.ps1 -PlaybookResourceGroups 'rg-soar-prod','rg-playbooks' -SubscriptionId <home-sub-id>
+   ```
+
+   The script resolves the per-tenant Azure Security Insights object ID automatically (via the well-known Microsoft app ID), so nothing tenant-specific is hardcoded. The grant applies to the subscription/tenant you run it against — for playbooks in your home tenant, run it while signed into your home tenant. It's safe to re-run; existing grants are detected and skipped.
 
 ---
 

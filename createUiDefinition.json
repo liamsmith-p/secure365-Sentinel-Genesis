@@ -343,7 +343,7 @@
                             "allowedValues": [
                                 {
                                     "label": "Microsoft Entra ID",
-                                    "description": "Configures tenant-level diagnostic settings to forward sign-in, audit, non-interactive, service principal, managed identity, provisioning, and identity risk logs to Sentinel. Requires Global Administrator or Security Administrator.",
+                                    "description": "Configures tenant-level diagnostic settings to forward all available Entra ID log categories (sign-in, audit, non-interactive, service principal, managed identity, provisioning, ADFS, identity and workload risk, Graph activity, and network access logs) to Sentinel. Requires Global Administrator or Security Administrator.",
                                     "value": "MicrosoftEntraID"
                                 },
                                 {

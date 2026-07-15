@@ -137,7 +137,7 @@ Configured automatically during deployment.
 
 | Connector | Notes |
 |---|---|
-| **Microsoft Entra ID** | Configures tenant-level diagnostic settings to forward sign-in, audit, non-interactive, service principal, managed identity, provisioning, ADFS, and identity risk logs. Requires Global Administrator or Security Administrator. |
+| **Microsoft Entra ID** | Configures tenant-level diagnostic settings to forward **all** available Entra ID log categories (sign-in, audit, non-interactive, service principal, managed identity, provisioning, ADFS, identity and workload/agent risk, Microsoft Graph activity, Global Secure Access network logs, and custom security attribute audit logs). Requires Global Administrator or Security Administrator; `CustomSecurityAttributeAuditLogs` additionally requires the Attribute Log Administrator role (see Troubleshooting). |
 | **Azure Activity** | Configures a subscription-level diagnostic setting to forward all activity log categories (Administrative, Security, ServiceHealth, Alert, Recommendation, Policy, Autoscale, ResourceHealth). Requires Owner on subscription. |
 | **Microsoft Defender XDR** | Enables incident and alert sync between XDR and Sentinel. Requires Security Administrator. |
 | **Microsoft 365** | Connects Exchange Online, SharePoint Online, and Microsoft Teams audit logs. Requires Security Administrator. |
@@ -245,3 +245,9 @@ Cause: The deployment script may have run before the managed identity received i
 
 **Deployment times out at approximately 1200 seconds ("Action sequencer job exceeded max allowed time")**
 Cause: Each deployment script runs in a separate Azure Container Instance which takes 30–60 seconds to start. On a large first-time deployment, cumulative startup time across all containers can approach the ARM 1200-second limit. Re-deploying is faster on subsequent runs as existing rules and settings are detected and skipped.
+
+**Entra ID diagnostic settings fail with an authorization or "category not supported" error**
+Affects: the Microsoft Entra ID connector. The deployment enables every available Entra ID log category. Two are conditional:
+- `CustomSecurityAttributeAuditLogs` requires the **Attribute Log Administrator** role (in addition to Security Administrator) to route. If the deploying account lacks it, the diagnostic settings resource fails.
+- `RiskyAgents` / `AgentRiskEvents` are newer ID Protection for agents categories and may be rejected in tenants that don't have that feature.
+Fix: assign the Attribute Log Administrator role and redeploy, or remove the offending category from the `logs` array in `LinkedTemplates/dataConnectors.json` (the `-entraIdDiagnosticSettings` resource) if you don't need it.

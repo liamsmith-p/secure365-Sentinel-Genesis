@@ -120,7 +120,7 @@
                         "value": "[variables('solutionsRaw')]"
                     }
                 ],
-                "primaryScriptUri": "https://raw.githubusercontent.com/liamsmith-p/secure365-Sentinel-Genesis/main/Scripts/Create-NewSolutionAndRulesFromList.ps1",
+                "primaryScriptUri": "https://raw.githubusercontent.com/liamsmith-p/secure365-Sentinel-Genesis/dev/Scripts/Create-NewSolutionAndRulesFromList.ps1",
                 "supportingScriptUris": [],
                 "timeout": "PT90M",
                 "cleanupPreference": "OnExpiration",

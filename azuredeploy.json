@@ -152,7 +152,7 @@
             "metadata": {
                 "description": "The location of resources"
             },
-            "defaultValue": "https://raw.githubusercontent.com/liamsmith-p/secure365-Sentinel-Genesis/main/"
+            "defaultValue": "https://raw.githubusercontent.com/liamsmith-p/secure365-Sentinel-Genesis/dev/"
         }
     },
     "variables": {},

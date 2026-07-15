@@ -116,7 +116,7 @@
                 "forceUpdateTag": "[parameters('forceUpdateTag')]",
                 "azPowerShellVersion": "3.0",
                 "arguments": "[concat('-WorkspaceName ', parameters('workspaceName'), ' -ResourceGroup ', resourceGroup().name, ' -SubscriptionId ', variables('subscriptionId'), ' -ResourceTypes ', variables('resourceTypes'))]",
-                "primaryScriptUri": "https://raw.githubusercontent.com/liamsmith-p/secure365-Sentinel-Genesis/main/Scripts/Configure-DiagnosticSettings.ps1",
+                "primaryScriptUri": "https://raw.githubusercontent.com/liamsmith-p/secure365-Sentinel-Genesis/dev/Scripts/Configure-DiagnosticSettings.ps1",
                 "timeout": "PT30M",
                 "cleanupPreference": "OnExpiration",
                 "retentionInterval": "P1D"

@@ -12,6 +12,12 @@
             "type": "array",
             "defaultValue": []
         },
+        "_artifactsLocation": {
+            "type": "string",
+            "metadata": {
+                "description": "Base URL the deployment scripts are fetched from (e.g. the raw GitHub branch URL). Passed down from the main template."
+            }
+        },
         "forceUpdateTag": {
             "type": "string",
             "defaultValue": "[utcNow()]"
@@ -116,7 +122,7 @@
                 "forceUpdateTag": "[parameters('forceUpdateTag')]",
                 "azPowerShellVersion": "3.0",
                 "arguments": "[concat('-WorkspaceName ', parameters('workspaceName'), ' -ResourceGroup ', resourceGroup().name, ' -SubscriptionId ', variables('subscriptionId'), ' -ResourceTypes ', variables('resourceTypes'))]",
-                "primaryScriptUri": "https://raw.githubusercontent.com/liamsmith-p/secure365-Sentinel-Genesis/dev/Scripts/Configure-DiagnosticSettings.ps1",
+                "primaryScriptUri": "[uri(parameters('_artifactsLocation'), 'Scripts/Configure-DiagnosticSettings.ps1')]",
                 "timeout": "PT30M",
                 "cleanupPreference": "OnExpiration",
                 "retentionInterval": "P1D"

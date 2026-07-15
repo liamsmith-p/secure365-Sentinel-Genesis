@@ -42,6 +42,12 @@
         "location": {
             "type": "string"
         },
+        "_artifactsLocation": {
+            "type": "string",
+            "metadata": {
+                "description": "Base URL the deployment scripts are fetched from (e.g. the raw GitHub branch URL). Passed down from the main template."
+            }
+        },
         "forceUpdateTag": {
             "type": "string",
             "defaultValue": "[utcNow()]"
@@ -120,7 +126,7 @@
                         "value": "[variables('solutionsRaw')]"
                     }
                 ],
-                "primaryScriptUri": "https://raw.githubusercontent.com/liamsmith-p/secure365-Sentinel-Genesis/dev/Scripts/Create-NewSolutionAndRulesFromList.ps1",
+                "primaryScriptUri": "[uri(parameters('_artifactsLocation'), 'Scripts/Create-NewSolutionAndRulesFromList.ps1')]",
                 "supportingScriptUris": [],
                 "timeout": "PT90M",
                 "cleanupPreference": "OnExpiration",

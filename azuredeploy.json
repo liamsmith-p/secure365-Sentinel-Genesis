@@ -277,6 +277,9 @@
                     },
                     "location": {
                         "value": "[parameters('location')]"
+                    },
+                    "_artifactsLocation": {
+                        "value": "[parameters('_artifactsLocation')]"
                     }
                 }
             }
@@ -304,6 +307,9 @@
                     },
                     "enableDiagnosticPolicies": {
                         "value": "[parameters('enableDiagnosticPolicies')]"
+                    },
+                    "_artifactsLocation": {
+                        "value": "[parameters('_artifactsLocation')]"
                     }
                 }
             }

@@ -23,22 +23,26 @@ Complete these steps before deploying or the deployment will fail.
 
 ### 2. Register required resource providers
 
-The deployment uses Azure Container Instances and Storage for deployment scripts. Most of these resource providers will already be registered in the customer's subscription before deploying. In the scenario they are not, either run this once in Azure Cloud Shell (PowerShell):
+The deployment uses Azure Container Instances and Storage for deployment scripts, and Azure Monitor (Microsoft.Insights) for diagnostic settings. Most of these resource providers will already be registered in the customer's subscription before deploying. In the scenario they are not, either run this once in Azure Cloud Shell (PowerShell):
 
 ```powershell
+Register-AzResourceProvider -ProviderNamespace Microsoft.Insights
 Register-AzResourceProvider -ProviderNamespace Microsoft.ContainerInstance
 Register-AzResourceProvider -ProviderNamespace Microsoft.Storage
 ```
 
-Wait for both to show `RegistrationState: Registered` before proceeding:
+Wait for all three to show `RegistrationState: Registered` before proceeding:
 
 ```powershell
+Get-AzResourceProvider -ProviderNamespace Microsoft.Insights | Select-Object RegistrationState
 Get-AzResourceProvider -ProviderNamespace Microsoft.ContainerInstance | Select-Object RegistrationState
 Get-AzResourceProvider -ProviderNamespace Microsoft.Storage | Select-Object RegistrationState
 ```
 **OR**
 
-In the customer's tenant, navigate to Subscriptions > Settings > Resource providers and search for Microsoft.ContainerInstance and Microsoft.Storage. Click the '...' and register the resource providers.
+In the customer's tenant, navigate to Subscriptions > Settings > Resource providers and search for Microsoft.Insights, Microsoft.ContainerInstance and Microsoft.Storage. Click the '...' and register the resource providers.
+
+> If you deploy with `Scripts/Deploy.ps1` instead of the portal button, these three providers are registered automatically before the deployment starts — no manual step needed.
 
 ### 3. New tenant checklist
 

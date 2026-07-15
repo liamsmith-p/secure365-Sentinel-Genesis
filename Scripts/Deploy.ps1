@@ -28,7 +28,7 @@ if (!$context) {
 Set-AzContext -SubscriptionId $SubscriptionId | Out-Null
 Write-Host "Connected to subscription: $SubscriptionId"
 
-$requiredProviders = @("Microsoft.ContainerInstance", "Microsoft.Storage")
+$requiredProviders = @("Microsoft.Insights", "Microsoft.ContainerInstance", "Microsoft.Storage")
 
 foreach ($provider in $requiredProviders) {
     $state = (Get-AzResourceProvider -ProviderNamespace $provider).RegistrationState | Select-Object -First 1

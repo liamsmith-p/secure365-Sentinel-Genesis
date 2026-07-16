@@ -67,8 +67,7 @@
                     { "category": "RemoteNetworkHealthLogs",            "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
                     { "category": "RiskyAgents",                        "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
                     { "category": "AgentRiskEvents",                    "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
-                    { "category": "MicrosoftServicePrincipalSignInLogs", "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
-                    { "category": "CustomSecurityAttributeAuditLogs",   "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } }
+                    { "category": "MicrosoftServicePrincipalSignInLogs", "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } }
                 ]
             }
         },

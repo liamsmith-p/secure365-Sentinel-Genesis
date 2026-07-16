@@ -21,28 +21,9 @@ Complete these steps before deploying or the deployment will fail.
 
 > Contributor alone is not sufficient — the deployment creates role assignments which require Owner or User Access Administrator. Security Administrator is sufficient for most connector operations, but Global Administrator may be required on some tenants for the Entra ID tenant-scoped diagnostic settings resource.
 
-### 2. Register required resource providers
+### 2. Required resource providers
 
-The deployment uses Azure Container Instances and Storage for deployment scripts, and Azure Monitor (Microsoft.Insights) for diagnostic settings. Most of these resource providers will already be registered in the customer's subscription before deploying. In the scenario they are not, either run this once in Azure Cloud Shell (PowerShell):
-
-```powershell
-Register-AzResourceProvider -ProviderNamespace Microsoft.Insights
-Register-AzResourceProvider -ProviderNamespace Microsoft.ContainerInstance
-Register-AzResourceProvider -ProviderNamespace Microsoft.Storage
-```
-
-Wait for all three to show `RegistrationState: Registered` before proceeding:
-
-```powershell
-Get-AzResourceProvider -ProviderNamespace Microsoft.Insights | Select-Object RegistrationState
-Get-AzResourceProvider -ProviderNamespace Microsoft.ContainerInstance | Select-Object RegistrationState
-Get-AzResourceProvider -ProviderNamespace Microsoft.Storage | Select-Object RegistrationState
-```
-**OR**
-
-In the customer's tenant, navigate to Subscriptions > Settings > Resource providers and search for Microsoft.Insights, Microsoft.ContainerInstance and Microsoft.Storage. Click the '...' and register the resource providers.
-
-> If you deploy with `Scripts/Deploy.ps1` instead of the portal button, these three providers are registered automatically before the deployment starts — no manual step needed.
+The deployment uses Azure Container Instances and Storage for its deployment scripts, and Azure Monitor (Microsoft.Insights) for diagnostic settings. These three resource providers (Microsoft.Insights, Microsoft.ContainerInstance and Microsoft.Storage) are registered automatically during deployment, so there is no manual step to complete here.
 
 ### 3. New tenant checklist
 
@@ -137,7 +118,7 @@ Configured automatically during deployment.
 
 | Connector | Notes |
 |---|---|
-| **Microsoft Entra ID** | Configures tenant-level diagnostic settings to forward the GA Entra ID log categories that are supported in every tenant (sign-in, audit, non-interactive, service principal, managed identity, provisioning, ADFS, user and service-principal risk, Microsoft Graph activity, Global Secure Access network traffic, enriched Office 365 audit, and remote network health). Requires Global Administrator or Security Administrator. Newer/preview and role-gated categories (e.g. `CustomSecurityAttributeAuditLogs`, `RiskyAgents`, `AgentRiskEvents`, `MicrosoftServicePrincipalSignInLogs`) are intentionally excluded (see Troubleshooting). |
+| **Microsoft Entra ID** | Configures tenant-level diagnostic settings to forward the standard Entra ID log categories that are available in every tenant: sign-in, audit, non-interactive user sign-in, service principal sign-in, managed identity sign-in, provisioning, ADFS sign-in, risky users, user risk events, risky service principals, service principal risk events, Microsoft Graph activity, network access traffic, enriched Office 365 audit, and remote network health. Requires Global Administrator or Security Administrator. Some newer and role-gated categories are left out on purpose so the deployment does not fail (see Troubleshooting). |
 | **Azure Activity** | Configures a subscription-level diagnostic setting to forward all activity log categories (Administrative, Security, ServiceHealth, Alert, Recommendation, Policy, Autoscale, ResourceHealth). Requires Owner on subscription. |
 | **Microsoft Defender XDR** | Enables incident and alert sync between XDR and Sentinel. Requires Security Administrator. |
 | **Microsoft 365** | Connects Exchange Online, SharePoint Online, and Microsoft Teams audit logs. Requires Security Administrator. |
@@ -247,7 +228,7 @@ Cause: The Active Directory identity provider was selected for UEBA without Micr
 Cause: Microsoft Defender XDR has not been provisioned yet. Visit [security.microsoft.com](https://security.microsoft.com) as a Global Administrator, let the portal fully load, then re-deploy.
 
 **Deployment fails with "ResourceProviderNotRegistered" for Microsoft.ContainerInstance or Microsoft.Storage**
-Cause: These resource providers are not registered in the subscription. Run the registration commands in the prerequisites section above before deploying.
+Cause: The required resource providers were not registered in time. The deployment registers them automatically, so re-running the deployment usually resolves this.
 
 **No analytics rules created after deployment**
 Cause: Either the Enable Scheduled alert rules checkbox was not ticked, no severity levels were selected, or no Content Hub solutions were selected. Re-deploy with these options configured.
@@ -262,11 +243,11 @@ Cause: The deployment script may have run before the managed identity received i
 Cause: Each deployment script runs in a separate Azure Container Instance which takes 30–60 seconds to start. On a large first-time deployment, cumulative startup time across all containers can approach the ARM 1200-second limit. Re-deploying is faster on subsequent runs as existing rules and settings are detected and skipped.
 
 **Entra ID diagnostic settings fail with a "category not supported" (BadRequest) error**
-Affects: the Microsoft Entra ID connector. The `-entraIdDiagnosticSettings` resource routes all categories through a single `microsoft.aadiam/diagnosticSettings` resource, which is all-or-nothing — if any one category is rejected, the entire resource fails and *no* Entra logs are routed. The template therefore ships only the GA categories that are supported in every tenant.
+Affects: the Microsoft Entra ID connector. All categories are routed through a single `microsoft.aadiam/diagnosticSettings` resource, which is all or nothing. If the tenant does not support one category, the whole resource fails and none of the Entra logs are routed. The template therefore only includes the standard categories that are available in every tenant.
 
-The definitive list of categories your tenant supports is the one shown in the portal under **Entra ID > Monitoring & health > Diagnostic settings > Add diagnostic setting** (or **Sentinel > Data connectors > Microsoft Entra ID**). Only add a category to the `logs` array in `LinkedTemplates/dataConnectors.json` (the `-entraIdDiagnosticSettings` resource) if it appears there for the tenants you deploy to.
+To see exactly which categories your tenant supports, open the portal at **Entra ID > Monitoring & health > Diagnostic settings > Add diagnostic setting** (or **Sentinel > Data connectors > Microsoft Entra ID**). Only add a category to the `logs` array in `LinkedTemplates/dataConnectors.json` (the `-entraIdDiagnosticSettings` resource) if it appears there for the tenants you deploy to.
 
-Categories deliberately excluded because they are newer/preview or role-gated and are rejected in tenants that lack the feature:
-- `CustomSecurityAttributeAuditLogs` — configured in a separate "Custom security attributes" section; Microsoft recommends keeping it in its own diagnostic setting and it requires the **Attribute Log Administrator** role to route. If you need it, create a *separate* diagnostic setting manually after assigning that role — do not add it back to the shared `logs` array.
-- `RiskyAgents` / `AgentRiskEvents` — ID Protection for agents categories, rejected where that feature isn't present.
-- `MicrosoftServicePrincipalSignInLogs` — preview first-party service-to-service sign-in logs; high volume and not present in all tenants.
+The following categories are left out on purpose because they are newer, in preview, or need an extra role, and are rejected in tenants that do not have the feature:
+- `CustomSecurityAttributeAuditLogs`: set up in a separate "Custom security attributes" section. Microsoft recommends keeping it in its own diagnostic setting and it needs the **Attribute Log Administrator** role to route. If you need it, create a separate diagnostic setting for it by hand after assigning that role. Do not add it back to the shared `logs` array.
+- `RiskyAgents` and `AgentRiskEvents`: ID Protection for agents categories, rejected where that feature is not present.
+- `MicrosoftServicePrincipalSignInLogs`: preview first-party service-to-service sign-in logs. High volume and not present in all tenants.

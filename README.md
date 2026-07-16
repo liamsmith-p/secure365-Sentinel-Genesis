@@ -23,7 +23,7 @@ Complete these steps before deploying or the deployment will fail.
 
 ### 2. Required resource providers
 
-The deployment uses Azure Container Instances and Storage for its deployment scripts, and Azure Monitor (Microsoft.Insights) for diagnostic settings. These three resource providers (Microsoft.Insights, Microsoft.ContainerInstance and Microsoft.Storage) are registered automatically during deployment, so there is no manual step to complete here.
+The deployment uses Azure Container Instances and Storage for its deployment scripts, and Azure Monitor (Microsoft.Insights) for diagnostic settings. These three resource providers (Microsoft.Insights, Microsoft.ContainerInstance and Microsoft.Storage) are registered automatically. The very first step of the template registers all three and waits until they report Registered before anything else runs, so there is no manual step to complete here.
 
 ### 3. New tenant checklist
 
@@ -165,6 +165,7 @@ Configures diagnostic settings on existing resources in the subscription at depl
 
 | Capability | Automated |
 |---|---|
+| Resource provider registration (Insights, ContainerInstance, Storage) | ✅ |
 | Workspace and Sentinel creation | ✅ |
 | Content Hub solution installation | ✅ |
 | Analytics rule creation from templates | ✅ |
@@ -228,7 +229,7 @@ Cause: The Active Directory identity provider was selected for UEBA without Micr
 Cause: Microsoft Defender XDR has not been provisioned yet. Visit [security.microsoft.com](https://security.microsoft.com) as a Global Administrator, let the portal fully load, then re-deploy.
 
 **Deployment fails with "ResourceProviderNotRegistered" for Microsoft.ContainerInstance or Microsoft.Storage**
-Cause: The required resource providers were not registered in time. The deployment registers them automatically, so re-running the deployment usually resolves this.
+Cause: The required resource providers were not registered in time. The first step of the deployment (`registerProviders`) registers Microsoft.Insights, Microsoft.ContainerInstance and Microsoft.Storage and waits for them, so this should not normally happen. If it does, re-running the deployment resolves it because the providers are registered by then.
 
 **No analytics rules created after deployment**
 Cause: Either the Enable Scheduled alert rules checkbox was not ticked, no severity levels were selected, or no Content Hub solutions were selected. Re-deploy with these options configured.

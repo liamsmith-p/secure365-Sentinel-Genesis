@@ -1,0 +1,105 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "type": "string"
+        },
+        "_artifactsLocation": {
+            "type": "string",
+            "metadata": {
+                "description": "Base URL the deployment scripts are fetched from (e.g. the raw GitHub branch URL). Passed down from the main template."
+            }
+        },
+        "forceUpdateTag": {
+            "type": "string",
+            "defaultValue": "[utcNow()]"
+        }
+    },
+    "variables": {
+        "identityName": "[concat('regIdentity', uniqueString(resourceGroup().id))]",
+        "subscriptionId": "[subscription().subscriptionId]",
+        "contributorRoleId": "b24988ac-6180-42a0-ab88-20f7382dd24c",
+        "roleAssignmentGuid": "[guid(resourceGroup().id, 'regproviders-contributor-assign')]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+            "apiVersion": "2018-11-30",
+            "name": "[variables('identityName')]",
+            "location": "[parameters('location')]"
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2021-04-01",
+            "name": "regIdentityRoleAssignment",
+            "location": "[parameters('location')]",
+            "subscriptionId": "[variables('subscriptionId')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('identityName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "expressionEvaluationOptions": {
+                    "scope": "inner"
+                },
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {
+                        "principalId": { "type": "string" },
+                        "contributorRoleId": { "type": "string" },
+                        "roleAssignmentGuid": { "type": "string" }
+                    },
+                    "resources": [
+                        {
+                            "type": "Microsoft.Authorization/roleAssignments",
+                            "apiVersion": "2022-04-01",
+                            "name": "[parameters('roleAssignmentGuid')]",
+                            "properties": {
+                                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', parameters('contributorRoleId'))]",
+                                "principalId": "[parameters('principalId')]",
+                                "principalType": "ServicePrincipal"
+                            }
+                        }
+                    ]
+                },
+                "parameters": {
+                    "principalId": {
+                        "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('identityName')), '2018-11-30').principalId]"
+                    },
+                    "contributorRoleId": {
+                        "value": "[variables('contributorRoleId')]"
+                    },
+                    "roleAssignmentGuid": {
+                        "value": "[variables('roleAssignmentGuid')]"
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Resources/deploymentScripts",
+            "apiVersion": "2020-10-01",
+            "name": "registerProviders",
+            "location": "[parameters('location')]",
+            "kind": "AzurePowerShell",
+            "identity": {
+                "type": "userAssigned",
+                "userAssignedIdentities": {
+                    "[resourceID('Microsoft.ManagedIdentity/userAssignedIdentities/', variables('identityName'))]": {}
+                }
+            },
+            "dependsOn": [
+                "regIdentityRoleAssignment"
+            ],
+            "properties": {
+                "forceUpdateTag": "[parameters('forceUpdateTag')]",
+                "azPowerShellVersion": "3.0",
+                "primaryScriptUri": "[uri(parameters('_artifactsLocation'), 'Scripts/Register-ResourceProviders.ps1')]",
+                "timeout": "PT30M",
+                "cleanupPreference": "OnExpiration",
+                "retentionInterval": "P1D"
+            }
+        }
+    ]
+}

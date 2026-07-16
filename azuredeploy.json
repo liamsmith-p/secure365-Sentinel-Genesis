@@ -158,6 +158,26 @@
     "variables": {},
     "resources": [
         {
+            "name": "registerProviders",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[uri(parameters('_artifactsLocation'), 'LinkedTemplates/registerProviders.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "_artifactsLocation": {
+                        "value": "[parameters('_artifactsLocation')]"
+                    }
+                }
+            }
+        },
+        {
             "name": "workspaceCreation",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
@@ -188,7 +208,8 @@
             "name": "settings",
             "apiVersion": "2020-06-01",
             "dependsOn": [
-                "workspaceCreation"
+                "workspaceCreation",
+                "registerProviders"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -218,7 +239,8 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
             "dependsOn": [
-                "workspaceCreation"
+                "workspaceCreation",
+                "registerProviders"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -248,7 +270,8 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
             "dependsOn": [
-                "workspaceCreation"
+                "workspaceCreation",
+                "registerProviders"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -290,7 +313,8 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
             "dependsOn": [
-                "workspaceCreation"
+                "workspaceCreation",
+                "registerProviders"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -320,7 +344,8 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
             "dependsOn": [
-                "workspaceCreation"
+                "workspaceCreation",
+                "registerProviders"
             ],
             "properties": {
                 "mode": "Incremental",

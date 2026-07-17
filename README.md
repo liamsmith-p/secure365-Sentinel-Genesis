@@ -4,7 +4,7 @@ Automated Microsoft Sentinel deployment provided by Softwerx. Deploys a fully co
 
 ![Sentinel Solution](https://github.com/user-attachments/assets/647bda8b-e007-49a7-a2f7-da93e5570126)
 
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fliamsmith-p%2Fsecure365-Sentinel-Genesis%2Fmain%2Fazuredeploy.json/createUIDefinitionUri/https%3A%2F%2Fraw.githubusercontent.com%2Fliamsmith-p%2Fsecure365-Sentinel-Genesis%2Fmain%2FcreateUiDefinition.json)
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fliamsmith-p%2Fsecure365-Sentinel-Genesis%2Fdev%2Fazuredeploy.json/createUIDefinitionUri/https%3A%2F%2Fraw.githubusercontent.com%2Fliamsmith-p%2Fsecure365-Sentinel-Genesis%2Fdev%2FcreateUiDefinition.json)
 
 ---
 
@@ -21,24 +21,9 @@ Complete these steps before deploying or the deployment will fail.
 
 > Contributor alone is not sufficient — the deployment creates role assignments which require Owner or User Access Administrator. Security Administrator is sufficient for most connector operations, but Global Administrator may be required on some tenants for the Entra ID tenant-scoped diagnostic settings resource.
 
-### 2. Register required resource providers
+### 2. Required resource providers
 
-The deployment uses Azure Container Instances and Storage for deployment scripts. Most of these resource providers will already be registered in the customer's subscription before deploying. In the scenario they are not, either run this once in Azure Cloud Shell (PowerShell):
-
-```powershell
-Register-AzResourceProvider -ProviderNamespace Microsoft.ContainerInstance
-Register-AzResourceProvider -ProviderNamespace Microsoft.Storage
-```
-
-Wait for both to show `RegistrationState: Registered` before proceeding:
-
-```powershell
-Get-AzResourceProvider -ProviderNamespace Microsoft.ContainerInstance | Select-Object RegistrationState
-Get-AzResourceProvider -ProviderNamespace Microsoft.Storage | Select-Object RegistrationState
-```
-**OR**
-
-In the customer's tenant, navigate to Subscriptions > Settings > Resource providers and search for Microsoft.ContainerInstance and Microsoft.Storage. Click the '...' and register the resource providers.
+The deployment uses Azure Container Instances and Storage for its deployment scripts, and Azure Monitor (Microsoft.Insights) for diagnostic settings. These three resource providers (Microsoft.Insights, Microsoft.ContainerInstance and Microsoft.Storage) are registered automatically. The very first step of the template registers all three and waits until they report Registered before anything else runs, so there is no manual step to complete here.
 
 ### 3. New tenant checklist
 
@@ -74,7 +59,7 @@ Click the relevant **Deploy to Azure** button above and work through each tab.
 - Under **Identity Providers**, select **Microsoft Entra ID** for cloud identity sync
 - Do **not** select **Active Directory** unless Microsoft Defender for Identity (MDI) is already deployed and fully onboarded — selecting it without MDI will fail with a precondition error
 
-**Enable Sentinel health diagnostics** — enables diagnostic logging for analytics rules, data connectors, and automation rules within Sentinel itself.
+**Enable Sentinel auditing and health monitoring** — creates the full diagnostic setting (`allLogs`) that streams both health (`SentinelHealth`) and audit (`SentinelAudit`) data for all Sentinel resource types — analytics rules, data connectors, automation rules, and playbooks. This is equivalent to clicking **Enable** on the Sentinel **Auditing and health monitoring** settings page.
 
 ---
 
@@ -133,7 +118,7 @@ Configured automatically during deployment.
 
 | Connector | Notes |
 |---|---|
-| **Microsoft Entra ID** | Configures tenant-level diagnostic settings to forward sign-in, audit, non-interactive, service principal, managed identity, provisioning, ADFS, and identity risk logs. Requires Global Administrator or Security Administrator. |
+| **Microsoft Entra ID** | Configures tenant-level diagnostic settings to forward the standard Entra ID log categories that are available in every tenant: sign-in, audit, non-interactive user sign-in, service principal sign-in, managed identity sign-in, provisioning, ADFS sign-in, risky users, user risk events, risky service principals, service principal risk events, Microsoft Graph activity, network access traffic, enriched Office 365 audit, and remote network health. Requires Global Administrator or Security Administrator. Some newer and role-gated categories are left out on purpose so the deployment does not fail (see Troubleshooting). |
 | **Azure Activity** | Configures a subscription-level diagnostic setting to forward all activity log categories (Administrative, Security, ServiceHealth, Alert, Recommendation, Policy, Autoscale, ResourceHealth). Requires Owner on subscription. |
 | **Microsoft Defender XDR** | Enables incident and alert sync between XDR and Sentinel. Requires Security Administrator. |
 | **Microsoft 365** | Connects Exchange Online, SharePoint Online, and Microsoft Teams audit logs. Requires Security Administrator. |
@@ -180,6 +165,7 @@ Configures diagnostic settings on existing resources in the subscription at depl
 
 | Capability | Automated |
 |---|---|
+| Resource provider registration (Insights, ContainerInstance, Storage) | ✅ |
 | Workspace and Sentinel creation | ✅ |
 | Content Hub solution installation | ✅ |
 | Analytics rule creation from templates | ✅ |
@@ -198,6 +184,7 @@ Configures diagnostic settings on existing resources in the subscription at depl
 | CEF / Syslog via AMA | ❌ Manual — requires forwarder and DCR configuration |
 | Entra ID IDP / Defender for Cloud Apps (if XDR-managed) | ❌ Not supported — configure via Defender portal |
 | Azure Firewall / WAF Solution data connection (via ARM connectors) | ❌ Data flows via Diagnostics tab, not a Sentinel connector |
+| Playbook (Logic App) permissions for automation | ⚠️ Scripted — run `Scripts/Configure-PlaybookPermissions.ps1` in your own user context (not part of the ARM deployment) |
 
 ---
 
@@ -212,6 +199,20 @@ After the deployment completes:
 3. **Review analytics rules** — go to **Configuration > Analytics** and confirm rules are in Active state. Rules that reference data sources not yet connected will show a warning — this is expected until the data source is live.
 
 4. **Configure agent-based connectors if selected** — if you installed the Windows Security Events or CEF solutions, deploy Azure Monitor Agent and configure the relevant Data Collection Rules on your target machines or log forwarders.
+
+5. **Configure playbook permissions (optional)** — if Sentinel automation rules need to run playbooks (Logic Apps), grant Sentinel permission on the resource groups that contain those playbooks. This is the scripted equivalent of the Sentinel **Settings > Playbook permissions > Configure permissions** panel — it assigns the Azure Security Insights app the **Microsoft Sentinel Automation Contributor** role on each selected resource group.
+
+   Run it **in your own user context** (the same context you'd use in the portal) — not as part of the ARM deployment, and no extra permissions beyond Owner on the target resource groups:
+
+   ```powershell
+   # Interactive — lists the resource groups in the current subscription and lets you pick
+   ./Scripts/Configure-PlaybookPermissions.ps1
+
+   # Or specify them directly
+   ./Scripts/Configure-PlaybookPermissions.ps1 -PlaybookResourceGroups 'rg-soar-prod','rg-playbooks' -SubscriptionId <home-sub-id>
+   ```
+
+   The script resolves the per-tenant Azure Security Insights object ID automatically (via the well-known Microsoft app ID), so nothing tenant-specific is hardcoded. The grant applies to the subscription/tenant you run it against — for playbooks in your home tenant, run it while signed into your home tenant. It's safe to re-run; existing grants are detected and skipped.
 
 ---
 
@@ -228,7 +229,7 @@ Cause: The Active Directory identity provider was selected for UEBA without Micr
 Cause: Microsoft Defender XDR has not been provisioned yet. Visit [security.microsoft.com](https://security.microsoft.com) as a Global Administrator, let the portal fully load, then re-deploy.
 
 **Deployment fails with "ResourceProviderNotRegistered" for Microsoft.ContainerInstance or Microsoft.Storage**
-Cause: These resource providers are not registered in the subscription. Run the registration commands in the prerequisites section above before deploying.
+Cause: The required resource providers were not registered in time. The first step of the deployment (`registerProviders`) registers Microsoft.Insights, Microsoft.ContainerInstance and Microsoft.Storage and waits for them, so this should not normally happen. If it does, re-running the deployment resolves it because the providers are registered by then.
 
 **No analytics rules created after deployment**
 Cause: Either the Enable Scheduled alert rules checkbox was not ticked, no severity levels were selected, or no Content Hub solutions were selected. Re-deploy with these options configured.
@@ -241,3 +242,13 @@ Cause: The deployment script may have run before the managed identity received i
 
 **Deployment times out at approximately 1200 seconds ("Action sequencer job exceeded max allowed time")**
 Cause: Each deployment script runs in a separate Azure Container Instance which takes 30–60 seconds to start. On a large first-time deployment, cumulative startup time across all containers can approach the ARM 1200-second limit. Re-deploying is faster on subsequent runs as existing rules and settings are detected and skipped.
+
+**Entra ID diagnostic settings fail with a "category not supported" (BadRequest) error**
+Affects: the Microsoft Entra ID connector. All categories are routed through a single `microsoft.aadiam/diagnosticSettings` resource, which is all or nothing. If the tenant does not support one category, the whole resource fails and none of the Entra logs are routed. The template therefore only includes the standard categories that are available in every tenant.
+
+To see exactly which categories your tenant supports, open the portal at **Entra ID > Monitoring & health > Diagnostic settings > Add diagnostic setting** (or **Sentinel > Data connectors > Microsoft Entra ID**). Only add a category to the `logs` array in `LinkedTemplates/dataConnectors.json` (the `-entraIdDiagnosticSettings` resource) if it appears there for the tenants you deploy to.
+
+The following categories are left out on purpose because they are newer, in preview, or need an extra role, and are rejected in tenants that do not have the feature:
+- `CustomSecurityAttributeAuditLogs`: set up in a separate "Custom security attributes" section. Microsoft recommends keeping it in its own diagnostic setting and it needs the **Attribute Log Administrator** role to route. If you need it, create a separate diagnostic setting for it by hand after assigning that role. Do not add it back to the shared `logs` array.
+- `RiskyAgents` and `AgentRiskEvents`: ID Protection for agents categories, rejected where that feature is not present.
+- `MicrosoftServicePrincipalSignInLogs`: preview first-party service-to-service sign-in logs. High volume and not present in all tenants.

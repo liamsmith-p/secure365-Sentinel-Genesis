@@ -105,6 +105,13 @@
             },
             "defaultValue": false
         },
+        "policySubscriptions": {
+            "type": "array",
+            "metadata": {
+                "description": "Subscription IDs the diagnostic settings policy is assigned to. Each assignment streams to the workspace. Defaults to the workspace subscription when empty."
+            },
+            "defaultValue": []
+        },
         "enableLighthouse": {
             "type": "bool",
             "defaultValue": false,
@@ -145,11 +152,31 @@
             "metadata": {
                 "description": "The location of resources"
             },
-            "defaultValue": "https://raw.githubusercontent.com/liamsmith-p/secure365-Sentinel-Genesis/main/"
+            "defaultValue": "https://raw.githubusercontent.com/liamsmith-p/secure365-Sentinel-Genesis/dev/"
         }
     },
     "variables": {},
     "resources": [
+        {
+            "name": "registerProviders",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[uri(parameters('_artifactsLocation'), 'LinkedTemplates/registerProviders.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "_artifactsLocation": {
+                        "value": "[parameters('_artifactsLocation')]"
+                    }
+                }
+            }
+        },
         {
             "name": "workspaceCreation",
             "type": "Microsoft.Resources/deployments",
@@ -181,7 +208,8 @@
             "name": "settings",
             "apiVersion": "2020-06-01",
             "dependsOn": [
-                "workspaceCreation"
+                "workspaceCreation",
+                "registerProviders"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -211,7 +239,8 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
             "dependsOn": [
-                "workspaceCreation"
+                "workspaceCreation",
+                "registerProviders"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -241,7 +270,8 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
             "dependsOn": [
-                "workspaceCreation"
+                "workspaceCreation",
+                "registerProviders"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -270,6 +300,9 @@
                     },
                     "location": {
                         "value": "[parameters('location')]"
+                    },
+                    "_artifactsLocation": {
+                        "value": "[parameters('_artifactsLocation')]"
                     }
                 }
             }
@@ -280,7 +313,8 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
             "dependsOn": [
-                "workspaceCreation"
+                "workspaceCreation",
+                "registerProviders"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -297,6 +331,9 @@
                     },
                     "enableDiagnosticPolicies": {
                         "value": "[parameters('enableDiagnosticPolicies')]"
+                    },
+                    "_artifactsLocation": {
+                        "value": "[parameters('_artifactsLocation')]"
                     }
                 }
             }
@@ -307,7 +344,8 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
             "dependsOn": [
-                "workspaceCreation"
+                "workspaceCreation",
+                "registerProviders"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -324,6 +362,9 @@
                     },
                     "enableDiagnosticPolicies": {
                         "value": "[parameters('enableDiagnosticPolicies')]"
+                    },
+                    "targetSubscriptions": {
+                        "value": "[if(empty(parameters('policySubscriptions')), array(subscription().subscriptionId), parameters('policySubscriptions'))]"
                     }
                 }
             }

@@ -117,8 +117,8 @@
                     {
                         "name": "enableDiagnostics",
                         "type": "Microsoft.Common.CheckBox",
-                        "label": "Enable Sentinel health diagnostics?",
-                        "toolTip": "This will enable diagnostics settings for Analytics rules, Data Connectors and Automation rules. [Learn more](https://learn.microsoft.com/azure/sentinel/health-audit)",
+                        "label": "Enable Sentinel auditing and health monitoring?",
+                        "toolTip": "Enables the full auditing and health monitoring diagnostic setting (allLogs) across all Sentinel resource types — Analytics rules, Data Connectors, Automation rules, and audit events. This matches the 'Enable' action on the Sentinel Auditing and health monitoring settings page. [Learn more](https://learn.microsoft.com/azure/sentinel/health-audit)",
                         "constraints": {
                             "required": false,
                             "validationMessage": "Please select"
@@ -343,7 +343,7 @@
                             "allowedValues": [
                                 {
                                     "label": "Microsoft Entra ID",
-                                    "description": "Configures tenant-level diagnostic settings to forward sign-in, audit, non-interactive, service principal, managed identity, provisioning, and identity risk logs to Sentinel. Requires Global Administrator or Security Administrator.",
+                                    "description": "Configures tenant-level diagnostic settings to forward all available Entra ID log categories (sign-in, audit, non-interactive, service principal, managed identity, provisioning, ADFS, identity and workload risk, Graph activity, and network access logs) to Sentinel. Requires Global Administrator or Security Administrator.",
                                     "value": "MicrosoftEntraID"
                                 },
                                 {
@@ -375,70 +375,110 @@
                             "required": false
                         },
                         "visible": true
-                    },
+                    }
+                ]
+            },
+            {
+                "name": "policy",
+                "label": "Policy",
+                "elements": [
                     {
-                        "name": "enableOngoingDiagnostics",
-                        "type": "Microsoft.Common.CheckBox",
-                        "label": "Enable Azure Policy for ongoing diagnostic settings enforcement",
-                        "toolTip": "Creates Azure Policy assignments (deployIfNotExists) for each selected resource type. New resources are automatically configured. Also triggers a remediation task to catch any existing non-compliant resources. Requires Owner on subscription.",
-                        "constraints": { "required": false },
-                        "visible": "[not(empty(steps('dataConnectors').enableDiagnosticPolicies))]"
-                    },
-                    {
-                        "name": "infoBoxDiagnostics",
+                        "name": "infoBoxPolicy",
                         "type": "Microsoft.Common.InfoBox",
                         "visible": true,
                         "options": {
                             "icon": "Info",
-                            "text": "Azure Key Vault, NSG, Storage, SQL Database, Azure Firewall, and Application Gateway WAF do not have Sentinel API connectors — their data is collected via Azure Diagnostics. Select resource types below to automatically configure diagnostic settings on all matching resources currently in your subscription, forwarding logs to this Sentinel workspace. Resources created after deployment will need diagnostics configured manually or via Azure Policy."
+                            "text": "Azure Key Vault, NSG, Storage, SQL Database, Azure Firewall, and Application Gateway WAF have no Sentinel API connector — their logs are collected via Azure Diagnostics. Select the resource types below, then optionally enable Azure Policy to enforce diagnostic settings across one or more subscriptions. All logs stream to the Log Analytics workspace selected on the Basics tab.",
+                            "uri": "https://learn.microsoft.com/azure/azure-monitor/essentials/diagnostic-settings"
                         }
                     },
                     {
                         "name": "enableDiagnosticPolicies",
                         "type": "Microsoft.Common.DropDown",
-                        "label": "Configure Azure Diagnostics for existing resources",
+                        "label": "Resource types to configure diagnostic settings for",
                         "placeholder": "",
                         "multiselect": true,
                         "filter": true,
                         "filterPlaceholder": "Filter items ...",
                         "multiLine": true,
-                        "toolTip": "Diagnostic settings will be configured on all matching resources found in your subscription at deployment time. Subscription Owner or Contributor permission required.",
+                        "toolTip": "Existing resources of these types in the workspace subscription are configured at deployment time. If ongoing policy is enabled below, a deployIfNotExists policy is also assigned to each selected subscription.",
                         "constraints": {
                             "allowedValues": [
                                 {
                                     "label": "Azure Key Vault",
-                                    "description": "Enables AuditEvent diagnostic logs on all Key Vaults in the subscription, forwarding to Sentinel.",
+                                    "description": "Enables AuditEvent diagnostic logs on all Key Vaults, forwarding to Sentinel.",
                                     "value": "AzureKeyVault"
                                 },
                                 {
                                     "label": "Azure Network Security Groups",
-                                    "description": "Enables NetworkSecurityGroupEvent and NetworkSecurityGroupRuleCounter logs on all NSGs in the subscription.",
+                                    "description": "Enables NetworkSecurityGroupEvent and NetworkSecurityGroupRuleCounter logs on all NSGs.",
                                     "value": "AzureNetworkSecurityGroup"
                                 },
                                 {
                                     "label": "Azure Storage Accounts",
-                                    "description": "Enables StorageRead, StorageWrite and StorageDelete logs on the blob service of all Storage Accounts in the subscription.",
+                                    "description": "Enables StorageRead, StorageWrite and StorageDelete logs on the blob service of all Storage Accounts.",
                                     "value": "AzureStorageAccount"
                                 },
                                 {
                                     "label": "Azure SQL Databases",
-                                    "description": "Enables SQLSecurityAuditEvents, SQLInsights, Errors, Timeouts, Blocks and Deadlocks logs on all SQL Databases in the subscription.",
+                                    "description": "Enables SQLSecurityAuditEvents, SQLInsights, Errors, Timeouts, Blocks and Deadlocks logs on all SQL Databases.",
                                     "value": "AzureSqlDatabase"
                                 },
                                 {
                                     "label": "Azure Firewall",
-                                    "description": "Enables AzureFirewallApplicationRule, AzureFirewallNetworkRule, AzureFirewallDnsProxy, and AzureFirewallThreatIntel diagnostic logs on all Azure Firewalls in the subscription.",
+                                    "description": "Enables AzureFirewallApplicationRule, AzureFirewallNetworkRule, AzureFirewallDnsProxy, and AzureFirewallThreatIntel diagnostic logs on all Azure Firewalls.",
                                     "value": "AzureFirewall"
                                 },
                                 {
                                     "label": "Azure Application Gateway (WAF)",
-                                    "description": "Enables ApplicationGatewayAccessLog, ApplicationGatewayPerformanceLog, and ApplicationGatewayFirewallLog diagnostic logs on all Application Gateways in the subscription.",
+                                    "description": "Enables ApplicationGatewayAccessLog, ApplicationGatewayPerformanceLog, and ApplicationGatewayFirewallLog diagnostic logs on all Application Gateways.",
                                     "value": "AzureApplicationGateway"
                                 }
                             ],
                             "required": false
                         },
                         "visible": true
+                    },
+                    {
+                        "name": "infoBoxExistingScan",
+                        "type": "Microsoft.Common.InfoBox",
+                        "visible": "[not(empty(steps('policy').enableDiagnosticPolicies))]",
+                        "options": {
+                            "icon": "Info",
+                            "text": "Existing resources in the workspace subscription are configured immediately at deployment time. To also cover other subscriptions and any resources created in future, enable ongoing Azure Policy enforcement below."
+                        }
+                    },
+                    {
+                        "name": "enableOngoingDiagnostics",
+                        "type": "Microsoft.Common.CheckBox",
+                        "label": "Enable Azure Policy for ongoing diagnostic settings enforcement",
+                        "toolTip": "Creates a deployIfNotExists policy assignment and remediation task in each selected subscription. New and existing resources are configured to stream to the workspace. Requires Owner on each selected subscription.",
+                        "constraints": { "required": false },
+                        "visible": "[not(empty(steps('policy').enableDiagnosticPolicies))]"
+                    },
+                    {
+                        "name": "subscriptionsApi",
+                        "type": "Microsoft.Solutions.ArmApiControl",
+                        "request": {
+                            "method": "GET",
+                            "path": "/subscriptions?api-version=2020-01-01"
+                        }
+                    },
+                    {
+                        "name": "policySubscriptions",
+                        "type": "Microsoft.Common.DropDown",
+                        "label": "Subscriptions to apply the diagnostic policy to",
+                        "placeholder": "",
+                        "multiselect": true,
+                        "filter": true,
+                        "filterPlaceholder": "Filter subscriptions ...",
+                        "multiLine": true,
+                        "toolTip": "The deployIfNotExists policy is assigned at the scope of each selected subscription. All diagnostic settings stream to the workspace selected on the Basics tab. Only subscriptions your account can read are listed.",
+                        "constraints": {
+                            "allowedValues": "[map(steps('policy').subscriptionsApi.value, (item) => parse(concat('{\"label\":\"', item.displayName, ' (', item.subscriptionId, ')\",\"value\":\"', item.subscriptionId, '\"}')))]",
+                            "required": true
+                        },
+                        "visible": "[and(not(empty(steps('policy').enableDiagnosticPolicies)), steps('policy').enableOngoingDiagnostics)]"
                     }
                 ]
             },
@@ -647,8 +687,9 @@
             "enableSolutions1P": "[steps('solutions').enableSolutions1P]",
             "enableSolutionsEssentials": "[steps('solutions').enableSolutionsEssentials]",
             "enableDataConnectors": "[steps('dataConnectors').enableDataConnectors]",
-            "enableDiagnosticPolicies": "[steps('dataConnectors').enableDiagnosticPolicies]",
-            "enableOngoingDiagnostics": "[steps('dataConnectors').enableOngoingDiagnostics]",
+            "enableDiagnosticPolicies": "[steps('policy').enableDiagnosticPolicies]",
+            "enableOngoingDiagnostics": "[steps('policy').enableOngoingDiagnostics]",
+            "policySubscriptions": "[steps('policy').policySubscriptions]",
             "aadStreams": [],
             "location": "[location()]",
             "enableScheduledAlerts": "[steps('analyticsRules').enableScheduledAlerts]",

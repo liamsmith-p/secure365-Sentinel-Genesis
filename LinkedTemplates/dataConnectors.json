@@ -60,7 +60,11 @@
                     { "category": "RiskyUsers",                   "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
                     { "category": "UserRiskEvents",               "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
                     { "category": "RiskyServicePrincipals",       "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
-                    { "category": "ServicePrincipalRiskEvents",   "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } }
+                    { "category": "ServicePrincipalRiskEvents",   "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
+                    { "category": "MicrosoftGraphActivityLogs",         "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
+                    { "category": "NetworkAccessTrafficLogs",           "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
+                    { "category": "EnrichedOffice365AuditLogs",         "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } },
+                    { "category": "RemoteNetworkHealthLogs",            "enabled": true, "retentionPolicy": { "days": 0, "enabled": false } }
                 ]
             }
         },

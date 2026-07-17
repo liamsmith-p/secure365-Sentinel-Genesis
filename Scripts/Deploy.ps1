@@ -16,7 +16,7 @@ param(
     [Parameter(Mandatory = $false)][string[]]$SeverityLevels = @(),
     [Parameter(Mandatory = $false)][string[]]$EnableDiagnosticPolicies = @(),
     [Parameter(Mandatory = $false)][bool]$EnableOngoingDiagnostics = $false,
-    [Parameter(Mandatory = $false)][string]$ArtifactsLocation = "https://raw.githubusercontent.com/liamsmith-p/secure365-Sentinel-Genesis/main/"
+    [Parameter(Mandatory = $false)][string]$ArtifactsLocation = "https://raw.githubusercontent.com/liamsmith-p/secure365-Sentinel-Genesis/dev/"
 )
 
 $context = Get-AzContext
@@ -28,7 +28,7 @@ if (!$context) {
 Set-AzContext -SubscriptionId $SubscriptionId | Out-Null
 Write-Host "Connected to subscription: $SubscriptionId"
 
-$requiredProviders = @("Microsoft.ContainerInstance", "Microsoft.Storage")
+$requiredProviders = @("Microsoft.Insights", "Microsoft.ContainerInstance", "Microsoft.Storage")
 
 foreach ($provider in $requiredProviders) {
     $state = (Get-AzResourceProvider -ProviderNamespace $provider).RegistrationState | Select-Object -First 1

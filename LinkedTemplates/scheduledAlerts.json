@@ -43,7 +43,7 @@
             "kind": "AzurePowerShell",
             "properties": {
                 "forceUpdateTag": "1",
-                "azPowerShellVersion": "3.0",
+                "azPowerShellVersion": "12.3",
                 "arguments": "",
                 "scriptContent": "Start-Sleep -Seconds 120",
                 "supportingScriptUris": [],
@@ -80,7 +80,7 @@
             },
             "properties": {
                 "forceUpdateTag": "1",
-                "azPowerShellVersion": "3.0",
+                "azPowerShellVersion": "12.3",
                 "arguments": "[concat('-Workspace ', parameters('workspaceName'), ' -ResourceGroup ', resourceGroup().name, ' -Connectors ', parameters('dataConnectorsList'), ' -SeveritiesToInclude ', parameters('severityLevels'))]",
                 "primaryScriptUri": "https://raw.githubusercontent.com/SoftwerxDevOps/secure365-Sentinel-Genesis/Scripts/EnableRules.ps1",
                 "supportingScriptUris": [],

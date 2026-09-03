@@ -96,7 +96,7 @@
             ],
             "properties": {
                 "forceUpdateTag": "1",
-                "azPowerShellVersion": "3.0",
+                "azPowerShellVersion": "12.3",
                 "scriptContent": "Start-Sleep -Seconds 60",
                 "timeout": "PT10M",
                 "cleanupPreference": "Always",
@@ -120,7 +120,7 @@
             ],
             "properties": {
                 "forceUpdateTag": "[parameters('forceUpdateTag')]",
-                "azPowerShellVersion": "3.0",
+                "azPowerShellVersion": "12.3",
                 "arguments": "[concat('-WorkspaceName ', parameters('workspaceName'), ' -ResourceGroup ', resourceGroup().name, ' -SubscriptionId ', variables('subscriptionId'), ' -ResourceTypes ', variables('resourceTypes'))]",
                 "primaryScriptUri": "[uri(parameters('_artifactsLocation'), 'Scripts/Configure-DiagnosticSettings.ps1')]",
                 "timeout": "PT30M",

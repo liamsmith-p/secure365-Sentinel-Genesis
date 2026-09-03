@@ -78,7 +78,7 @@
             "kind": "AzurePowerShell",
             "properties": {
                 "forceUpdateTag": "[parameters('forceUpdateTag')]",
-                "azPowerShellVersion": "3.0",
+                "azPowerShellVersion": "12.3",
                 "arguments": "",
                 "scriptContent": "Start-Sleep -Seconds 60",
                 "supportingScriptUris": [],
@@ -118,7 +118,7 @@
             },
             "properties": {
                 "forceUpdateTag": "[parameters('forceUpdateTag')]",
-                "azPowerShellVersion": "3.0",
+                "azPowerShellVersion": "12.3",
                 "arguments": "[concat('-Workspace ', parameters('workspaceName'), ' -ResourceGroup ', resourceGroup().name, ' -SubscriptionId ', subscription().subscriptionId, ' -TenantId ', subscription().tenantId, ' -SeveritiesToInclude ', string(variables('severities')), ' -Region ', parameters('location'))]",
                 "environmentVariables": [
                     {
@@ -150,7 +150,7 @@
             },
             "properties": {
                 "forceUpdateTag": "[parameters('forceUpdateTag')]",
-                "azPowerShellVersion": "3.0",
+                "azPowerShellVersion": "12.3",
                 "arguments": "[concat('-ResourceGroupName ', resourceGroup().name, ' -RoleAssignmentName ', variables('roleGuid'), ' -IdentityName ', variables('identityName'))]",
                 "scriptContent": "param($ResourceGroupName, $RoleAssignmentName, $IdentityName)\ntry {\n    Write-Host \"Removing role assignment: $RoleAssignmentName\"\n    Remove-AzRoleAssignment -ObjectId (Get-AzUserAssignedIdentity -ResourceGroupName $ResourceGroupName -Name $IdentityName).PrincipalId -RoleDefinitionName 'Contributor' -Scope (Get-AzResourceGroup -Name $ResourceGroupName).ResourceId -ErrorAction SilentlyContinue\n    Write-Host \"Role assignment removed\"\n} catch {\n    Write-Host \"Role assignment removal skipped: $_\"\n}\ntry {\n    Write-Host \"Removing managed identity: $IdentityName\"\n    Remove-AzUserAssignedIdentity -ResourceGroupName $ResourceGroupName -Name $IdentityName -ErrorAction SilentlyContinue\n    Write-Host \"Managed identity removed\"\n} catch {\n    Write-Host \"Identity removal skipped: $_\"\n}",
                 "supportingScriptUris": [],

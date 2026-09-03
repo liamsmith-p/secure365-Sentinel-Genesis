@@ -19,7 +19,7 @@ Complete these steps before deploying or the deployment will fail.
 | **Owner** | Azure subscription | Creating all resources, subscription-level diagnostic settings, Azure Policy assignments, and role assignments used by deployment scripts |
 | **Global Administrator** or **Security Administrator** | Entra ID tenant | Configuring Entra ID diagnostic settings, data connectors, enabling UEBA |
 
-> Contributor alone is not sufficient — the deployment creates role assignments which require Owner or User Access Administrator. Security Administrator is sufficient for most connector operations, but Global Administrator may be required on some tenants for the Entra ID tenant-scoped diagnostic settings resource.
+> Contributor alone is not sufficient - the deployment creates role assignments which require Owner or User Access Administrator. Security Administrator is sufficient for most connector operations, but Global Administrator may be required on some tenants for the Entra ID tenant-scoped diagnostic settings resource.
 
 ### 2. Required resource providers
 
@@ -29,8 +29,8 @@ The deployment uses Azure Container Instances and Storage for its deployment scr
 
 If deploying to a **brand new tenant**, complete these before deploying:
 
-1. **Provision Microsoft Defender XDR** — sign in to [security.microsoft.com](https://security.microsoft.com) as a Global Administrator and let the portal fully load. This initialises the XDR workspace. Without this, enabling UEBA will fail with a misleading permissions error even if your permissions are correct.
-2. **Verify your Entra ID roles** — confirm your account has Security Administrator or Global Administrator assigned in [Entra ID](https://entra.microsoft.com) > Roles and administrators, not just Azure RBAC.
+1. **Provision Microsoft Defender XDR** - sign in to [security.microsoft.com](https://security.microsoft.com) as a Global Administrator and let the portal fully load. This initialises the XDR workspace. Without this, enabling UEBA will fail with a misleading permissions error even if your permissions are correct.
+2. **Verify your Entra ID roles** - confirm your account has Security Administrator or Global Administrator assigned in [Entra ID](https://entra.microsoft.com) > Roles and administrators, not just Azure RBAC.
 
 ---
 
@@ -48,25 +48,31 @@ Click the relevant **Deploy to Azure** button above and work through each tab.
 | Workspace Name | Name for the new Log Analytics / Sentinel workspace |
 | Retention (days) | 90 days recommended as a starting point (30–730 supported). The `SecurityIncident` table is pinned to 365 days regardless of this value, so incident history is kept for a year even on a shorter workspace retention. |
 | Pricing tier | Pay-as-you-go is the only current option |
+
+Example:
 <img width="859" height="567" alt="image" src="https://github.com/user-attachments/assets/9dbfeed2-666c-48d3-afd8-d6269c76a304" />
 
 ---
 
 ### Settings
 
-**Enable UEBA** — enables User Entity Behavior Analytics.
+**Enable UEBA** - enables User Entity Behavior Analytics.
 
 - Only enable this if Microsoft Defender XDR has already been provisioned (see new tenant checklist)
 - Under **Identity Providers**, select **Microsoft Entra ID** for cloud identity sync
-- Do **not** select **Active Directory** unless Microsoft Defender for Identity (MDI) is already deployed and fully onboarded — selecting it without MDI will fail with a precondition error
+- Do **not** select **Active Directory** unless Microsoft Defender for Identity (MDI) is already deployed and fully onboarded - selecting it without MDI will fail with a precondition error
 
-**Enable Sentinel auditing and health monitoring** — creates the full diagnostic setting (`allLogs`) that streams both health (`SentinelHealth`) and audit (`SentinelAudit`) data for all Sentinel resource types — analytics rules, data connectors, automation rules, and playbooks. This is equivalent to clicking **Enable** on the Sentinel **Auditing and health monitoring** settings page.
+**Enable Sentinel auditing and health monitoring** - creates the full diagnostic setting (`allLogs`) that streams both health (`SentinelHealth`) and audit (`SentinelAudit`) data for all Sentinel resource types: analytics rules, data connectors, automation rules, and playbooks. This is equivalent to clicking **Enable** on the Sentinel **Auditing and health monitoring** settings page.
+
+Example:
+<img width="857" height="299" alt="image" src="https://github.com/user-attachments/assets/89d833c2-19bf-47ee-a291-986ce9d3ecc9" />
+
 
 ---
 
 ### Content Hub Solutions
 
-Each solution deploys analytics rule templates, workbooks, hunting queries, and parsers for that product or service. Installing a solution does not automatically connect data — data sources must be connected separately in the Data Connectors tab.
+Each solution installs analytics rule templates, workbooks, hunting queries, and parsers for that product or service. Installing a solution does not automatically connect data, data sources must be connected separately in the Data Connectors tab.
 
 #### Microsoft solutions
 
@@ -89,8 +95,8 @@ Each solution deploys analytics rule templates, workbooks, hunting queries, and 
 | Dynamics 365 | Dynamics 365 activity, audit, and configuration change analytics |
 | Microsoft Power BI | Power BI audit activity analytics (dashboard views, dataset access, sharing) |
 | Microsoft Project | Project activity log and access analytics |
-| Windows Security Events | Analytics rules and workbooks for Windows Security Event data collected via Azure Monitor Agent. **Requires separate agent deployment and Data Collection Rule configuration on target machines — not automated by this template.** |
-| Common Event Format (CEF) | Parsers, rules, and workbooks for CEF-formatted syslog data from firewalls, IDS/IPS, and security appliances. **Requires a CEF forwarder or AMA syslog configuration on a Linux collector — not automated by this template.** |
+| Windows Security Events | Analytics rules and workbooks for Windows Security Event data collected via Azure Monitor Agent. **Requires separate agent deployment and Data Collection Rule configuration on target machines - not automated by this template.** |
+| Common Event Format (CEF) | Parsers, rules, and workbooks for CEF-formatted syslog data from firewalls, IDS/IPS, and security appliances. **Requires a CEF forwarder or AMA syslog configuration on a Linux collector - not automated by this template.** |
 
 #### Essentials packs
 
@@ -126,6 +132,9 @@ Configures which data sources send logs to the Sentinel workspace. The tab offer
 
 > **Windows Security Events via AMA and CEF:** These are agent-based connectors and cannot be fully automated via ARM deployment. Install the relevant solutions to get the analytics content, then configure Azure Monitor Agent, Data Collection Rules, and any required log forwarders manually post-deployment.
 
+Example:
+<img width="868" height="742" alt="image" src="https://github.com/user-attachments/assets/41b3390b-efef-4d79-85ff-635e33733893" />
+
 ---
 
 ### Policy
@@ -141,26 +150,32 @@ Key Vault, NSG, Storage, SQL Database, Azure Firewall, and Application Gateway W
 | Azure Firewall | `Microsoft.Network/azureFirewalls` | AzureFirewallApplicationRule, AzureFirewallNetworkRule, AzureFirewallDnsProxy, AzureFirewallThreatIntel |
 | Azure Application Gateway (WAF) | `Microsoft.Network/applicationGateways` | ApplicationGatewayAccessLog, ApplicationGatewayPerformanceLog, ApplicationGatewayFirewallLog |
 
-**Resource types to configure** — for each type you select, a deployment script scans the workspace subscription and applies a diagnostic setting named `sentinel-diagnostics` to every existing resource of that type. Existing settings with a different name are not modified.
+**Resource types to configure** - for each type you select, a deployment script scans the workspace subscription and applies a diagnostic setting named `sentinel-diagnostics` to every existing resource of that type. Existing settings with a different name are not modified.
 
-**Enable Azure Policy for ongoing diagnostic settings enforcement** — when ticked, creates a `deployIfNotExists` policy assignment plus a remediation task in each subscription you select under **Subscriptions to apply the diagnostic policy to**. This covers resources created after deployment and, through the selected-subscriptions list, resources outside the workspace subscription. Requires Owner on each selected subscription. Without this box ticked, only existing resources in the workspace subscription are configured, once, at deploy time.
+**Enable Azure Policy for ongoing diagnostic settings enforcement** - when ticked, creates a `deployIfNotExists` policy assignment plus a remediation task in each subscription you select under **Subscriptions to apply the diagnostic policy to**. This covers resources created after deployment and, through the selected-subscriptions list, resources outside the workspace subscription. Requires Owner on each selected subscription. Without this box ticked, only existing resources in the workspace subscription are configured, once, at deploy time.
+
+Example:
+<img width="859" height="432" alt="image" src="https://github.com/user-attachments/assets/2abe0e97-6907-4065-a3ac-102d3f83e91b" />
 
 ---
 
-### Analytics Rules
+### Analytics Rules (optional)
 
-**Enable Scheduled alert rules** — automatically creates active analytics rules from the templates included in your selected Content Hub solutions.
+**Enable Scheduled alert rules** - automatically creates active analytics rules from the templates included in your selected Content Hub solutions.
 
 - Rules are only created for solutions selected in the Content Hub tab
-- Rules are filtered to the severity levels you select — High and Medium are selected by default in most tiers; Enterprise also enables Low
-- The deployment checks for existing rules before creating new ones — re-running the deployment will not duplicate rules
+- Rules are filtered to the severity levels you select - High and Medium are selected by default in most tiers; Enterprise also enables Low
+- The deployment checks for existing rules before creating new ones - re-running the deployment will not duplicate rules
 - Rules will not generate alerts unless the relevant data source is connected and sending data
+
+Example:
+<img width="863" height="398" alt="image" src="https://github.com/user-attachments/assets/2f9ace58-824d-4577-b21c-a2ef27053991" />
 
 ---
 
-### Service Provider
+### Service Provider (optional)
 
-Optional. Delegates this subscription to a managing service provider through Azure Lighthouse, so they can operate Sentinel from their own tenant without a guest account. Enabling it creates a registration definition and a subscription-scoped assignment. Requires Owner on the subscription.
+Delegates this subscription to a managing service provider through Azure Lighthouse, so they can operate Sentinel from their own tenant without a guest account. Enabling it creates a registration definition and a subscription-scoped assignment. Requires Owner on the subscription.
 
 | Field | Guidance |
 |---|---|
@@ -192,7 +207,7 @@ Optional. Delegates this subscription to a managing service provider through Azu
 | Resource-level diagnostic settings (KV, NSG, Storage, SQL, Firewall, WAF) | ✅ |
 | Azure Policy for ongoing diagnostics enforcement, across selected subscriptions | ✅ |
 | Azure Lighthouse delegation to a managing service provider | ✅ Optional, via the Service Provider tab |
-| Defender XDR, Defender for Cloud, Entra ID Identity Protection, Defender for Cloud Apps connectors | ❌ Not offered — XDR-managed, configure in the Defender portal |
+| Defender XDR, Defender for Cloud, Entra ID Identity Protection, Defender for Cloud Apps connectors | ❌ Not offered - XDR-managed, configure in the Defender portal |
 | Defender XDR unified workspace connection | ❌ Manual, must be done in the Defender portal |
 | Windows Security Events via AMA | ❌ Manual, requires agent and DCR configuration |
 | CEF / Syslog via AMA | ❌ Manual, requires forwarder and DCR configuration |
@@ -204,27 +219,27 @@ Optional. Delegates this subscription to a managing service provider through Azu
 
 After the deployment completes:
 
-1. **Connect Defender XDR unified workspace** — in the [Microsoft Defender portal](https://security.microsoft.com), go to **Settings > Microsoft Sentinel**, select the newly created workspace, and click **Connect**. This enables the full XDR-Sentinel integration including the advanced hunting experience. This step cannot be automated.
+1. **Connect Defender XDR unified workspace** - in the [Microsoft Defender portal](https://security.microsoft.com), go to **Settings > Microsoft Sentinel**, select the newly created workspace, and click **Connect**. This enables the full XDR-Sentinel integration including the advanced hunting experience. This step cannot be automated.
 
-2. **Verify data connector status** — in the Sentinel workspace, go to **Configuration > Data connectors** and confirm the connectors you selected show as Connected.
+2. **Verify data connector status** - in the Sentinel workspace, go to **Configuration > Data connectors** and confirm the connectors you selected show as Connected.
 
-3. **Review analytics rules** — go to **Configuration > Analytics** and confirm rules are in Active state. Rules that reference data sources not yet connected will show a warning — this is expected until the data source is live.
+3. **Review analytics rules** - go to **Configuration > Analytics** and confirm rules are in Active state. Rules that reference data sources not yet connected will show a warning - this is expected until the data source is live.
 
-4. **Configure agent-based connectors if selected** — if you installed the Windows Security Events or CEF solutions, deploy Azure Monitor Agent and configure the relevant Data Collection Rules on your target machines or log forwarders.
+4. **Configure agent-based connectors if selected** - if you installed the Windows Security Events or CEF solutions, deploy Azure Monitor Agent and configure the relevant Data Collection Rules on your target machines or log forwarders.
 
-5. **Configure playbook permissions (optional)** — if Sentinel automation rules need to run playbooks (Logic Apps), grant Sentinel permission on the resource groups that contain those playbooks. This is the scripted equivalent of the Sentinel **Settings > Playbook permissions > Configure permissions** panel — it assigns the Azure Security Insights app the **Microsoft Sentinel Automation Contributor** role on each selected resource group.
+5. **Configure playbook permissions (optional)** - if Sentinel automation rules need to run playbooks (Logic Apps), grant Sentinel permission on the resource groups that contain those playbooks. This is the scripted equivalent of the Sentinel **Settings > Playbook permissions > Configure permissions** panel - it assigns the Azure Security Insights app the **Microsoft Sentinel Automation Contributor** role on each selected resource group.
 
-   Run it **in your own user context** (the same context you'd use in the portal) — not as part of the ARM deployment, and no extra permissions beyond Owner on the target resource groups:
+   Run it **in your own user context** (the same context you'd use in the portal) - not as part of the ARM deployment, and no extra permissions beyond Owner on the target resource groups:
 
    ```powershell
-   # Interactive — lists the resource groups in the current subscription and lets you pick
+   # Interactive - lists the resource groups in the current subscription and lets you pick
    ./Scripts/Configure-PlaybookPermissions.ps1
 
    # Or specify them directly
    ./Scripts/Configure-PlaybookPermissions.ps1 -PlaybookResourceGroups 'rg-soar-prod','rg-playbooks' -SubscriptionId <home-sub-id>
    ```
 
-   The script resolves the per-tenant Azure Security Insights object ID automatically (via the well-known Microsoft app ID), so nothing tenant-specific is hardcoded. The grant applies to the subscription/tenant you run it against — for playbooks in your home tenant, run it while signed into your home tenant. It's safe to re-run; existing grants are detected and skipped.
+   The script resolves the per-tenant Azure Security Insights object ID automatically (via the well-known Microsoft app ID), so nothing tenant-specific is hardcoded. The grant applies to the subscription/tenant you run it against - for playbooks in your home tenant, run it while signed into your home tenant. It's safe to re-run; existing grants are detected and skipped.
 
 ---
 

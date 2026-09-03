@@ -48,6 +48,7 @@ Click the relevant **Deploy to Azure** button above and work through each tab.
 | Workspace Name | Name for the new Log Analytics / Sentinel workspace |
 | Retention (days) | 90 days recommended as a starting point (30–730 supported). The `SecurityIncident` table is pinned to 365 days regardless of this value, so incident history is kept for a year even on a shorter workspace retention. |
 | Pricing tier | Pay-as-you-go is the only current option |
+<img width="859" height="567" alt="image" src="https://github.com/user-attachments/assets/9dbfeed2-666c-48d3-afd8-d6269c76a304" />
 
 ---
 

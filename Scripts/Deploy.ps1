@@ -16,7 +16,7 @@ param(
     [Parameter(Mandatory = $false)][string[]]$SeverityLevels = @(),
     [Parameter(Mandatory = $false)][string[]]$EnableDiagnosticPolicies = @(),
     [Parameter(Mandatory = $false)][bool]$EnableOngoingDiagnostics = $false,
-    [Parameter(Mandatory = $false)][string]$ArtifactsLocation = "https://raw.githubusercontent.com/liamsmith-p/secure365-Sentinel-Genesis/dev/"
+    [Parameter(Mandatory = $false)][string]$ArtifactsLocation = "https://raw.githubusercontent.com/liamsmith-p/secure365-Sentinel-Genesis/main/"
 )
 
 $context = Get-AzContext

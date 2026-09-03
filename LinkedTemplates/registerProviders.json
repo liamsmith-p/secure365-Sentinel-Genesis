@@ -80,6 +80,24 @@
         {
             "type": "Microsoft.Resources/deploymentScripts",
             "apiVersion": "2020-10-01",
+            "name": "regSleep",
+            "location": "[parameters('location')]",
+            "kind": "AzurePowerShell",
+            "dependsOn": [
+                "regIdentityRoleAssignment"
+            ],
+            "properties": {
+                "forceUpdateTag": "1",
+                "azPowerShellVersion": "3.0",
+                "scriptContent": "Start-Sleep -Seconds 120",
+                "timeout": "PT10M",
+                "cleanupPreference": "Always",
+                "retentionInterval": "P1D"
+            }
+        },
+        {
+            "type": "Microsoft.Resources/deploymentScripts",
+            "apiVersion": "2020-10-01",
             "name": "registerProviders",
             "location": "[parameters('location')]",
             "kind": "AzurePowerShell",
@@ -90,11 +108,12 @@
                 }
             },
             "dependsOn": [
-                "regIdentityRoleAssignment"
+                "[resourceId('Microsoft.Resources/deploymentScripts', 'regSleep')]"
             ],
             "properties": {
                 "forceUpdateTag": "[parameters('forceUpdateTag')]",
                 "azPowerShellVersion": "3.0",
+                "arguments": "[concat('-SubscriptionId ', variables('subscriptionId'))]",
                 "primaryScriptUri": "[uri(parameters('_artifactsLocation'), 'Scripts/Register-ResourceProviders.ps1')]",
                 "timeout": "PT30M",
                 "cleanupPreference": "OnExpiration",

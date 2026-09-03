@@ -46,7 +46,7 @@ Click the relevant **Deploy to Azure** button above and work through each tab.
 | Resource group | Create new or select existing |
 | Region | Select your preferred Azure region |
 | Workspace Name | Name for the new Log Analytics / Sentinel workspace |
-| Retention (days) | 90 days recommended as a starting point (30–730 supported) |
+| Retention (days) | 90 days recommended as a starting point (30–730 supported). The `SecurityIncident` table is pinned to 365 days regardless of this value, so incident history is kept for a year even on a shorter workspace retention. |
 | Pricing tier | Pay-as-you-go is the only current option |
 
 ---
@@ -110,43 +110,39 @@ Cross-product detection content recommended for all deployments regardless of wh
 
 ### Data Connectors
 
-Configures which data sources send logs to the Sentinel workspace.
-
-#### Sentinel API connectors
-
-Configured automatically during deployment.
+Configures which data sources send logs to the Sentinel workspace. The tab offers six connectors, all configured automatically during deployment.
 
 | Connector | Notes |
 |---|---|
 | **Microsoft Entra ID** | Configures tenant-level diagnostic settings to forward the standard Entra ID log categories that are available in every tenant: sign-in, audit, non-interactive user sign-in, service principal sign-in, managed identity sign-in, provisioning, ADFS sign-in, risky users, user risk events, risky service principals, service principal risk events, Microsoft Graph activity, network access traffic, enriched Office 365 audit, and remote network health. Requires Global Administrator or Security Administrator. Some newer and role-gated categories are left out on purpose so the deployment does not fail (see Troubleshooting). |
 | **Azure Activity** | Configures a subscription-level diagnostic setting to forward all activity log categories (Administrative, Security, ServiceHealth, Alert, Recommendation, Policy, Autoscale, ResourceHealth). Requires Owner on subscription. |
-| **Microsoft Defender XDR** | Enables incident and alert sync between XDR and Sentinel. Requires Security Administrator. |
-| **Microsoft 365** | Connects Exchange Online, SharePoint Online, and Microsoft Teams audit logs. Requires Security Administrator. |
-| **Microsoft Defender for Cloud** | Ingests Defender for Cloud security alerts into Sentinel. Requires Security Reader on subscription. |
-| **Dynamics 365** | Ingests Dynamics 365 Common Data Service activity logs. Requires Security Administrator. |
-| **Microsoft Entra ID Identity Protection** ⚠️ | Do **not** select if your tenant uses Microsoft Defender XDR — Identity Protection is managed by the XDR portal and enabling it here will cause a conflict error. Configure via the Defender portal instead. |
-| **Microsoft Defender for Cloud Apps** ⚠️ | Do **not** select if your tenant manages Defender for Cloud Apps through the Microsoft Defender XDR portal — it will fail with a conflict error. Configure via the Defender portal instead. |
+| **Microsoft 365** | Connects Exchange Online, SharePoint Online, and Microsoft Teams audit logs (`OfficeActivity` table). Requires Security Administrator. |
+| **Microsoft Power BI** | Ingests Power BI audit activity. Also select the Microsoft Power BI Content Hub solution for the matching analytics rules and workbooks. Requires Security Administrator. |
+| **Microsoft Project** | Ingests Microsoft Project activity logs. Also select the Microsoft Project Content Hub solution for the matching content. Requires Security Administrator. |
+| **Dynamics 365** | Ingests Dynamics 365 Common Data Service activity logs. Also select the Dynamics 365 Content Hub solution. Requires Security Administrator. |
 
-> **Power BI and Project:** These services do not have standalone Sentinel connector kinds. Their audit data flows through the Microsoft 365 audit logs (`OfficeActivity` table) when the Microsoft 365 connector is enabled. Select the Microsoft Power BI and Microsoft Project solutions to install the associated analytics rules and workbooks.
+> **Defender connectors are not offered here.** Microsoft Defender XDR, Defender for Cloud, Entra ID Identity Protection, and Defender for Cloud Apps are managed from the Microsoft Defender portal when XDR is active, and configuring them through ARM conflicts with that. Install their Content Hub solutions for the analytics content, then connect the data in the Defender portal (see Post-deployment steps).
 
 > **Windows Security Events via AMA and CEF:** These are agent-based connectors and cannot be fully automated via ARM deployment. Install the relevant solutions to get the analytics content, then configure Azure Monitor Agent, Data Collection Rules, and any required log forwarders manually post-deployment.
 
-#### Azure Diagnostics (resource-level)
+---
 
-Configures diagnostic settings on existing resources in the subscription at deploy time, forwarding logs to the Sentinel workspace. A deployment script scans the entire subscription and configures any matching resources it finds.
+### Policy
+
+Key Vault, NSG, Storage, SQL Database, Azure Firewall, and Application Gateway WAF have no Sentinel API connector: their logs are collected through Azure Diagnostics instead. This tab configures diagnostic settings on those resource types and, optionally, keeps them enforced with Azure Policy. All logs stream to the workspace selected on the Basics tab.
 
 | Option | Resource type | Log categories |
 |---|---|---|
 | Azure Key Vault | `Microsoft.KeyVault/vaults` | AuditEvent |
 | Azure Network Security Groups | `Microsoft.Network/networkSecurityGroups` | NetworkSecurityGroupEvent, NetworkSecurityGroupRuleCounter |
-| Azure Storage Accounts | `Microsoft.Storage/storageAccounts` | StorageRead, StorageWrite, StorageDelete (blob, queue, table, file); Transaction metrics |
+| Azure Storage Accounts | `Microsoft.Storage/storageAccounts` | StorageRead, StorageWrite, StorageDelete (blob service) |
 | Azure SQL Databases | `Microsoft.Sql/servers/databases` | SQLSecurityAuditEvents, SQLInsights, Errors, Timeouts, Blocks, Deadlocks |
 | Azure Firewall | `Microsoft.Network/azureFirewalls` | AzureFirewallApplicationRule, AzureFirewallNetworkRule, AzureFirewallDnsProxy, AzureFirewallThreatIntel |
 | Azure Application Gateway (WAF) | `Microsoft.Network/applicationGateways` | ApplicationGatewayAccessLog, ApplicationGatewayPerformanceLog, ApplicationGatewayFirewallLog |
 
-> Diagnostic settings are created with the name `sentinel-diagnostics`. Existing settings with a different name are not modified. Resources created after deployment are not automatically configured unless **Enable Azure Policy for ongoing enforcement** is also selected.
+**Resource types to configure** — for each type you select, a deployment script scans the workspace subscription and applies a diagnostic setting named `sentinel-diagnostics` to every existing resource of that type. Existing settings with a different name are not modified.
 
-**Enable Azure Policy for ongoing enforcement** — when ticked alongside any diagnostic resource type, creates a `deployIfNotExists` Azure Policy assignment at subscription scope for each selected type. New resources matching that type are automatically configured with diagnostic settings. Also triggers a remediation task to catch any existing non-compliant resources. Requires Owner on subscription.
+**Enable Azure Policy for ongoing diagnostic settings enforcement** — when ticked, creates a `deployIfNotExists` policy assignment plus a remediation task in each subscription you select under **Subscriptions to apply the diagnostic policy to**. This covers resources created after deployment and, through the selected-subscriptions list, resources outside the workspace subscription. Requires Owner on each selected subscription. Without this box ticked, only existing resources in the workspace subscription are configured, once, at deploy time.
 
 ---
 
@@ -161,6 +157,20 @@ Configures diagnostic settings on existing resources in the subscription at depl
 
 ---
 
+### Service Provider
+
+Optional. Delegates this subscription to a managing service provider through Azure Lighthouse, so they can operate Sentinel from their own tenant without a guest account. Enabling it creates a registration definition and a subscription-scoped assignment. Requires Owner on the subscription.
+
+| Field | Guidance |
+|---|---|
+| Enable Azure Lighthouse delegation | Leave unticked to skip this entirely |
+| Managing Tenant ID | The Entra tenant ID (GUID) of the service provider |
+| Offer Name | Display name for the delegation, used as the registration definition name |
+| Offer Description | Optional free text |
+| Authorizations | One row per principal and role pair, up to 20. Each row takes a **Principal Object ID** (a user, group, or service principal in the managing tenant), a **Display Name**, and a **Role** chosen from a fixed list (Sentinel Contributor/Reader, Log Analytics Contributor/Reader, Monitoring Contributor/Reader, Security Admin/Reader, Resource Policy Contributor, Reader, Contributor, User Access Administrator, Owner). Prefer least privilege: Sentinel Contributor plus Reader covers most SOC operations. |
+
+---
+
 ## What is and isn't automated
 
 | Capability | Automated |
@@ -171,20 +181,21 @@ Configures diagnostic settings on existing resources in the subscription at depl
 | Analytics rule creation from templates | ✅ |
 | Microsoft Entra ID diagnostic settings | ✅ |
 | Azure Activity diagnostic settings | ✅ |
-| Defender XDR connector (basic) | ✅ |
 | Microsoft 365 connector | ✅ |
-| Defender for Cloud connector | ✅ |
+| Microsoft Power BI connector | ✅ |
+| Microsoft Project connector | ✅ |
 | Dynamics 365 connector | ✅ |
 | Threat Intelligence (MDTI free tier) connector | ✅ Auto-connected after solution install |
 | UEBA configuration | ✅ |
+| Sentinel auditing and health diagnostic setting | ✅ |
 | Resource-level diagnostic settings (KV, NSG, Storage, SQL, Firewall, WAF) | ✅ |
-| Azure Policy for ongoing diagnostics enforcement | ✅ |
-| Defender XDR unified workspace connection | ❌ Manual — must be done in the Defender portal |
-| Windows Security Events via AMA | ❌ Manual — requires agent and DCR configuration |
-| CEF / Syslog via AMA | ❌ Manual — requires forwarder and DCR configuration |
-| Entra ID IDP / Defender for Cloud Apps (if XDR-managed) | ❌ Not supported — configure via Defender portal |
-| Azure Firewall / WAF Solution data connection (via ARM connectors) | ❌ Data flows via Diagnostics tab, not a Sentinel connector |
-| Playbook (Logic App) permissions for automation | ⚠️ Scripted — run `Scripts/Configure-PlaybookPermissions.ps1` in your own user context (not part of the ARM deployment) |
+| Azure Policy for ongoing diagnostics enforcement, across selected subscriptions | ✅ |
+| Azure Lighthouse delegation to a managing service provider | ✅ Optional, via the Service Provider tab |
+| Defender XDR, Defender for Cloud, Entra ID Identity Protection, Defender for Cloud Apps connectors | ❌ Not offered — XDR-managed, configure in the Defender portal |
+| Defender XDR unified workspace connection | ❌ Manual, must be done in the Defender portal |
+| Windows Security Events via AMA | ❌ Manual, requires agent and DCR configuration |
+| CEF / Syslog via AMA | ❌ Manual, requires forwarder and DCR configuration |
+| Playbook (Logic App) permissions for automation | ⚠️ Scripted, run `Scripts/Configure-PlaybookPermissions.ps1` in your own user context (not part of the ARM deployment) |
 
 ---
 
@@ -218,9 +229,8 @@ After the deployment completes:
 
 ## Troubleshooting
 
-**"Changes to connector are disabled" / conflict error**
-Affects: Microsoft Entra ID Identity Protection, Microsoft Defender for Cloud Apps
-Cause: These connectors are managed by the Microsoft Defender XDR portal when XDR is active. Do not select them in the Data Connectors tab — configure them via the Defender portal instead.
+**Where are the Defender connectors?**
+Microsoft Defender XDR, Defender for Cloud, Entra ID Identity Protection, and Defender for Cloud Apps are deliberately not offered on the Data connectors tab. When XDR is active these are managed from the Microsoft Defender portal, and configuring them through ARM returns a "changes to connector are disabled" conflict. Install their Content Hub solutions here for the analytics content, then connect the data in the Defender portal.
 
 **"Polygon precondition failed" on EntityAnalytics / UEBA**
 Cause: The Active Directory identity provider was selected for UEBA without Microsoft Defender for Identity deployed. Re-deploy with only Microsoft Entra ID selected, or deselect UEBA entirely if MDI is not in scope.

@@ -41,11 +41,15 @@ if (-not $context -or $context.Subscription.Id -ne $SubscriptionId) {
 Write-Host "Azure context set to subscription $SubscriptionId."
 
 # Current registration state of a single provider, or $null if it cannot be read.
+# Note: -ProviderNamespace and -ListAvailable are separate parameter sets on the
+# Az module shipped in the deployment-script container, so they cannot be
+# combined. Pull the full list and filter it, the way this script always has.
 function Get-ProviderRegistrationState {
     param([string]$Namespace)
     try {
-        return (Get-AzResourceProvider -ProviderNamespace $Namespace -ListAvailable -ErrorAction Stop |
-            Where-Object { $_.ProviderNamespace -eq $Namespace }).RegistrationState | Select-Object -First 1
+        return (Get-AzResourceProvider -ListAvailable -ErrorAction Stop |
+            Where-Object { $_.ProviderNamespace -eq $Namespace } |
+            Select-Object -First 1).RegistrationState
     }
     catch {
         Write-Host "Could not read registration state for $Namespace : $($_.Exception.Message)"

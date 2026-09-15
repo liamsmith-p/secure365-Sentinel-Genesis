@@ -212,6 +212,7 @@ Delegates this subscription to a managing service provider through Azure Lightho
 | Windows Security Events via AMA | ❌ Manual, requires agent and DCR configuration |
 | CEF / Syslog via AMA | ❌ Manual, requires forwarder and DCR configuration |
 | Playbook (Logic App) permissions for automation | ⚠️ Scripted, run `Scripts/Configure-PlaybookPermissions.ps1` in your own user context (not part of the ARM deployment) |
+| Post-deployment verification report | ⚠️ Scripted, run `Scripts/New-DeploymentVerificationReport.ps1` in your own user context (not part of the ARM deployment) |
 
 ---
 
@@ -241,6 +242,16 @@ After the deployment completes:
 
    The script resolves the per-tenant Azure Security Insights object ID automatically (via the well-known Microsoft app ID), so nothing tenant-specific is hardcoded. The grant applies to the subscription/tenant you run it against - for playbooks in your home tenant, run it while signed into your home tenant. It's safe to re-run; existing grants are detected and skipped.
 
+6. **Generate a verification report (optional)** - cross-checks everything selected in the wizard against what Azure actually shows, down to individual log categories, resource-level diagnostic settings (naming which specific resources are and aren't configured), Content Hub solutions, analytics rule counts by severity, policy assignments and Lighthouse registration. Re-runnable at any time; useful a few minutes after deployment once policy remediation and connector status have settled, and a quick way to spot a resource a lock is silently blocking (see Troubleshooting).
+
+   Run it **in your own user context**, not as part of the ARM deployment - it pulls the original wizard selections straight from Azure's deployment history, so nothing needs to be re-typed:
+
+   ```powershell
+   ./Scripts/New-DeploymentVerificationReport.ps1 -ResourceGroupName rg-sentinel-prod
+   ```
+
+   Writes a Markdown report and a raw JSON copy (`sentinel-verification-<workspace>-<timestamp>.md/.json`) to the current directory, and prints a live summary as it runs. If it can't find the right deployment automatically, pass `-DeploymentName` explicitly.
+
 ---
 
 ## Troubleshooting
@@ -259,6 +270,16 @@ Cause: The required resource providers were not registered in time. The first st
 
 **No analytics rules created after deployment**
 Cause: Either the Enable Scheduled alert rules checkbox was not ticked, no severity levels were selected, or no Content Hub solutions were selected. Re-deploy with these options configured.
+
+**A Policy diagnostic-settings deployment fails on one specific resource, while others of the same type succeed**
+Cause: A resource lock on that one resource. A **ReadOnly** lock always blocks it - Microsoft documents the identical behaviour for NSG flow logs, and a diagnostic setting is the same kind of extension resource, so there is no way around it while the lock stays in place. A **CanNotDelete** lock should *not* block it; if that's the only lock present, check the resource's Activity Log for the failed write and confirm the actual error code before assuming the lock is the cause.
+
+Run `./Scripts/New-DeploymentVerificationReport.ps1` to see exactly which resources are missing their `sentinel-diagnostics` setting. If you don't want to touch the lock, exempt just that resource from the policy assignment instead - it stops Azure Policy from repeatedly retrying and failing on it, without changing the lock:
+
+```powershell
+$assignment = Get-AzPolicyAssignment | Where-Object { $_.Properties.DisplayName -like 'Sentinel - Storage Account diagnostic settings*' }
+New-AzPolicyExemption -Name 'sentinel-diag-exempt-<resource-name>' -PolicyAssignment $assignment -Scope '<locked-resource-id>' -ExemptionCategory Waiver -DisplayName 'Locked - diagnostics not automatable'
+```
 
 **Threat Intelligence connector shows as not connected**
 Cause: The MDTI free connector is auto-connected by the deployment script after the solution installs, but it requires a short wait. If it still shows as disconnected after 10 minutes, check the `deployRules` deployment script logs in the Azure portal under the resource group > Deployments > deployRules > Logs.
